@@ -61,6 +61,7 @@
     <Compile Include="Cmdlets\BlueprintCmdletBase.cs" />
     <Compile Include="Cmdlets\GetAzureRMBlueprint.cs" />
     <Compile Include="Cmdlets\GetAzureRMBlueprintAssignment.cs" />
+    <Compile Include="Cmdlets\RemoveAzureRMBlueprintAssignment.cs" />
     <Compile Include="Models\PSAssignmentLockSettings.cs" />
     <Compile Include="Models\PSAssignmentStatus.cs" />
     <Compile Include="Models\PSAzureResourceBase.cs" />

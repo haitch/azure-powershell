@@ -88,11 +88,11 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         {
             if (Name == null)
             {
-                ProcessBlueprints(Client);
+                ProcessBlueprints();
             }
             else
             {
-                ProcessNamedBlueprints(Client);
+                ProcessNamedBlueprints();
             }
         }
 
@@ -141,16 +141,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                         foreach (var bp in list)
                         {
                             if (latest == null)
-                            {
                                 latest = bp;
-                            }
-                            else
-                            {
-                                if (CompareDateStrings(bp.Status.LastModified, latest.Status.LastModified) > 0)
-                                {
-                                    latest = bp;
-                                }
-                            }
+                            else if (CompareDateStrings(bp.Status.LastModified, latest.Status.LastModified) > 0)
+                                latest = bp;
                         }
 
                         if (list.NextPageLink == null)
@@ -172,12 +165,11 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// <summary>
         /// Fetch all blueprints from the API and write each to the pipeline
         /// </summary>
-        /// <param name="client">An IBlueprintManagementClient providing the Blueprint API</param>
-        private void ProcessBlueprints(IBlueprintManagementClient client)
+        private void ProcessBlueprints()
         {
             try
             {
-                var list = client.Blueprints.List(ManagementGroupName);
+                var list = Client.Blueprints.List(ManagementGroupName);
 
                 while (true)
                 {
@@ -187,7 +179,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                     if (list.NextPageLink == null)
                         return;
 
-                    list = client.Blueprints.ListNext(list.NextPageLink);
+                    list = Client.Blueprints.ListNext(list.NextPageLink);
                 }
             }
             catch (Exception ex)
@@ -199,14 +191,13 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// <summary>
         /// Fetch named blueprint(s) from the API and write each to the pipeline
         /// </summary>
-        /// <param name="client">An IBlueprintManagementClient providing the Blueprint API</param>
-        private void ProcessNamedBlueprints(IBlueprintManagementClient client)
+        private void ProcessNamedBlueprints()
         {
             foreach (var name in Name)
             {
                 try
                 {
-                    var bp = client.Blueprints.Get(ManagementGroupName, name);
+                    var bp = Client.Blueprints.Get(ManagementGroupName, name);
 
                     WriteObject(PSBlueprint.FromBlueprintModel(bp, ManagementGroupName));
                 }
@@ -220,8 +211,8 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// <summary>
         /// Compare two strings representing date/time values
         /// </summary>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
+        /// <param name="first">First string to compare.</param>
+        /// <param name="second">Second string to compare</param>
         /// <returns>
         /// An integer value that is less than zero if first is earlier than second, greater than zero if first is later than second,
         /// or equal to zero if first is the same as second.
@@ -229,9 +220,10 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// <remarks>
         /// In the event that one or both strings cannot be parsed into a DateTime object, the unparsable string will be
         /// treated as a null DateTime? object. If both strings are unparsable they will be considered equal. If one
-        /// string is unparsable it will be considered earlier than the one that is successfully parsed.
+        /// string is unparsable it will be considered earlier than the one that is successfully parsed. Otherwise the
+        /// two strings are parsed into DateTime objects and compared with the DateTime.Compare method.
         /// </remarks>
-        private int CompareDateStrings(string first, string second)
+        private static int CompareDateStrings(string first, string second)
         {
             DateTime?   dtFirst = null;
             DateTime?   dtSecond = null;

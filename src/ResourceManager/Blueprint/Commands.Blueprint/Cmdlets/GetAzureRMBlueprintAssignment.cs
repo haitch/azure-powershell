@@ -41,11 +41,11 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         {
             if (Name == null)
             {
-                ProcessAssignments(Client);
+                ProcessAssignments();
             }
             else
             {
-                ProcessNamedAssignments(Client);
+                ProcessNamedAssignments();
             }
         }
         #endregion Cmdlet Overrides
@@ -54,50 +54,50 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// <summary>
         /// Fetch all assignments from the API and write each to the pipeline
         /// </summary>
-        /// <param name="client">An IBlueprintManagementClient providing the Blueprint API</param>
-        private void ProcessAssignments(IBlueprintManagementClient client)
+        private void ProcessAssignments()
         {
-            var list = client.Assignments.List(SubscriptionId);
-
-            while (true)
+            try
             {
-                foreach (var assignment in list)
-                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, GetSubscriptionId()));
+                string subscription = Subscription ?? DefaultContext.Subscription.Id;
+                var list = Client.Assignments.List(subscription);
 
-                if (list.NextPageLink == null)
-                    return;
+                while (true)
+                {
+                    foreach (var assignment in list)
+                        WriteObject(PSBlueprintAssignment.FromAssignment(assignment, subscription));
 
-                list = client.Assignments.ListNext(list.NextPageLink);
+                    if (list.NextPageLink == null)
+                        return;
+
+                    list = Client.Assignments.ListNext(list.NextPageLink);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteExceptionError(ex);
             }
         }
 
         /// <summary>
         /// Fetch named assignment(s) from the API and write each to the pipeline
         /// </summary>
-        /// <param name="client">An IBlueprintManagementClient providing the Blueprint API</param>
-        private void ProcessNamedAssignments(IBlueprintManagementClient client)
+        private void ProcessNamedAssignments()
         {
+            string subscription = Subscription ?? DefaultContext.Subscription.Id;
+
             foreach (var name in Name)
             {
                 try
                 {
-                    var assignment = client.Assignments.Get(SubscriptionId, name);
+                    var assignment = Client.Assignments.Get(subscription, name);
 
-                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, GetSubscriptionId()));
+                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, subscription));
                 }
                 catch (Exception ex)
                 {
                     WriteExceptionError(ex);
                 }
             }
-        }
-
-        private string GetSubscriptionId()
-        {
-            if (Subscription != null)
-                return Subscription;
-            else
-                return DefaultContext.Subscription.Id;
         }
         #endregion Private Methods
     }

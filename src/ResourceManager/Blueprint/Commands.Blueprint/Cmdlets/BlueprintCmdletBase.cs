@@ -44,13 +44,5 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 return client;
             }
         }
-
-        /// <summary>
-        /// Gets the current Subscription ID.
-        /// </summary>
-        protected string SubscriptionId
-        {
-            get { return DefaultContext.Subscription.Id; }
-        }
     }
 }
