@@ -1,0 +1,104 @@
+﻿// ----------------------------------------------------------------------------------
+//
+// Copyright Microsoft Corporation
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ----------------------------------------------------------------------------------
+
+using Microsoft.Azure.Commands.Blueprint.Models;
+using Microsoft.Azure.Management.Blueprint;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Management.Automation;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
+{
+    [Cmdlet(VerbsCommon.Get, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "BlueprintAssignment")]
+    public class GetAzureRMBlueprintAssignment : BlueprintCmdletBase
+    {
+        #region Parameters
+        [Parameter(Mandatory = false, Position = 0)]
+        [ValidateNotNull]
+        public string[] Name { get; set; }
+
+        [Parameter(Mandatory = false)]
+        [ValidateNotNullOrEmpty]
+        public string Subscription { get; set; }
+        #endregion Parameters
+
+        #region Cmdlet Overrides
+        public override void ExecuteCmdlet()
+        {
+            if (Name == null)
+            {
+                ProcessAssignments(Client);
+            }
+            else
+            {
+                ProcessNamedAssignments(Client);
+            }
+        }
+        #endregion Cmdlet Overrides
+
+        #region Private Methods
+        /// <summary>
+        /// Fetch all assignments from the API and write each to the pipeline
+        /// </summary>
+        /// <param name="client">An IBlueprintManagementClient providing the Blueprint API</param>
+        private void ProcessAssignments(IBlueprintManagementClient client)
+        {
+            var list = client.Assignments.List(SubscriptionId);
+
+            while (true)
+            {
+                foreach (var assignment in list)
+                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, GetSubscriptionId()));
+
+                if (list.NextPageLink == null)
+                    return;
+
+                list = client.Assignments.ListNext(list.NextPageLink);
+            }
+        }
+
+        /// <summary>
+        /// Fetch named assignment(s) from the API and write each to the pipeline
+        /// </summary>
+        /// <param name="client">An IBlueprintManagementClient providing the Blueprint API</param>
+        private void ProcessNamedAssignments(IBlueprintManagementClient client)
+        {
+            foreach (var name in Name)
+            {
+                try
+                {
+                    var assignment = client.Assignments.Get(SubscriptionId, name);
+
+                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, GetSubscriptionId()));
+                }
+                catch (Exception ex)
+                {
+                    WriteExceptionError(ex);
+                }
+            }
+        }
+
+        private string GetSubscriptionId()
+        {
+            if (Subscription != null)
+                return Subscription;
+            else
+                return DefaultContext.Subscription.Id;
+        }
+        #endregion Private Methods
+    }
+}

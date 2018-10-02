@@ -21,30 +21,20 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Commands.Blueprint.Models
 {
-#if false
-    public class PSBlueprint : PSManagementGroupResourceBase
+    public class PSPublishedBlueprint : PSBlueprintBase
     {
-        public string DisplayName { get; set; }
-        public string Description { get; set; }
-        public PSBlueprintStatus Status { get; set; }
-        public PSTargetScope TargetScope { get; set; }
-        public IDictionary<string, PSParameterDefinition> Parameters { get; set; }
-        public IDictionary<string, PSResourceGroupDefinition> ResourceGroups { get; set; }
-#else
-    public class PSBlueprint : PSBlueprintBase
-    {
-#endif
-        public object Versions { get; set; }
+        public string BlueprintName { get; set; }
+        public string ChangeNotes { get; set; }
 
         /// <summary>
-        /// Create a PSBlueprint object from a BlueprintModel.
+        /// Create a PSPublishedBlueprint object from a PublishedBlueprint.
         /// </summary>
         /// <param name="model"></param>
         /// <param name="managementGroupName">Name of the management group the blueprint belongs to.</param>
-        /// <returns>A new PSBlueprint object</returns>
-        internal static PSBlueprint FromBlueprintModel(BlueprintModel model, string managementGroupName)
+        /// <returns>A new PSPublishedBlueprint object</returns>
+        internal static PSPublishedBlueprint FromPublishedBlueprintModel(PublishedBlueprint model, string managementGroupName)
         {
-            var psBlueprint = new PSBlueprint
+            var psBlueprint = new PSPublishedBlueprint
             {
                 Name = model.Name,
                 ManagementGroupName = managementGroupName,
@@ -54,7 +44,8 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
                 TargetScope = PSTargetScope.Unknown,
                 Parameters = new Dictionary<string, PSParameterDefinition>(),
                 ResourceGroups = new Dictionary<string, PSResourceGroupDefinition>(),
-                Versions = model.Versions
+                BlueprintName = model.BlueprintName,
+                ChangeNotes = model.ChangeNotes
             };
 
             if (DateTime.TryParse(model.Status.TimeCreated, out DateTime timeCreated))
