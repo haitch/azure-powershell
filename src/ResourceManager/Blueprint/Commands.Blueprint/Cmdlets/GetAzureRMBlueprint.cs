@@ -36,9 +36,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #endregion Class Constants
 
         #region Parameters
-        [Parameter(Mandatory = false, Position = 0, ParameterSetName = ParameterSetDefault)]
-        [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSetByVersion)]
-        [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSetLatestPublished)]
+        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetDefault)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetByVersion)]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetLatestPublished)]
         [ValidateNotNullOrEmpty]
         public string[] Name { get; set; }
 
