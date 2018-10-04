@@ -21,19 +21,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Commands.Blueprint.Models
 {
-#if false
-    public class PSBlueprint : PSManagementGroupResourceBase
-    {
-        public string DisplayName { get; set; }
-        public string Description { get; set; }
-        public PSBlueprintStatus Status { get; set; }
-        public PSTargetScope TargetScope { get; set; }
-        public IDictionary<string, PSParameterDefinition> Parameters { get; set; }
-        public IDictionary<string, PSResourceGroupDefinition> ResourceGroups { get; set; }
-#else
     public class PSBlueprint : PSBlueprintBase
     {
-#endif
         public object Versions { get; set; }
 
         /// <summary>
@@ -46,6 +35,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
         {
             var psBlueprint = new PSBlueprint
             {
+                Id = model.Id,
                 Name = model.Name,
                 ManagementGroupName = managementGroupName,
                 DisplayName = model.DisplayName,

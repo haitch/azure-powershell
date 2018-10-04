@@ -36,6 +36,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
         {
             var psBlueprint = new PSPublishedBlueprint
             {
+                Id = model.Id,
                 Name = model.Name,
                 ManagementGroupName = managementGroupName,
                 DisplayName = model.DisplayName,
