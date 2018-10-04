@@ -48,7 +48,6 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
         [Parameter(Mandatory = true)]
         [ValidateNotNull]
-        //public IDictionary<string, object> Parameters { get; set; }
         public Hashtable Parameters { get; set; }
 
         [Parameter(Mandatory = false)]
