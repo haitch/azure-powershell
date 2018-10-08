@@ -79,9 +79,13 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                     localAssignment.Parameters.Add(key.ToString(), value);
                 }
 
-                var assignment = Client.Assignments.CreateOrUpdate(Subscription, Name, localAssignment);
-                if (assignment != null)
-                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, Subscription));
+                if (ShouldProcess(Name))
+                {
+                    var assignment = Client.Assignments.CreateOrUpdate(Subscription, Name, localAssignment);
+                    if (assignment != null)
+                        WriteObject(PSBlueprintAssignment.FromAssignment(assignment, Subscription));
+
+                }
             }
             catch (Exception ex)
             {
