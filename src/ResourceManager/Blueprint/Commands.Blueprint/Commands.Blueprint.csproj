@@ -53,11 +53,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Azure.Management.Blueprint">
-      <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint.0.1.0-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Cmdlets\BlueprintCmdletBase.cs" />
     <Compile Include="Cmdlets\GetAzureRMBlueprint.cs" />
     <Compile Include="Cmdlets\GetAzureRMBlueprintAssignment.cs" />
@@ -100,6 +95,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Azure.Management.Blueprint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint.0.9.0-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
