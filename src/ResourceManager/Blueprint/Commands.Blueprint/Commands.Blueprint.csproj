@@ -97,9 +97,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Azure.Management.Blueprint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Azure.Management.Blueprint">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint.0.9.0-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint.0.9.1-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
