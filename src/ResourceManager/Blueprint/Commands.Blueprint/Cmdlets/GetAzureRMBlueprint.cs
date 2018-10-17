@@ -16,6 +16,7 @@ using Microsoft.Azure.Commands.Blueprint.Models;
 using Microsoft.Azure.Commands.Common.Authentication;
 using Microsoft.Azure.Commands.Common.Authentication.Abstractions;
 using Microsoft.Azure.Management.Blueprint;
+using Microsoft.Azure.Management.ManagementGroups;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,11 +43,11 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         [ValidateNotNullOrEmpty]
         public string[] Name { get; set; }
 
-        [Parameter(Mandatory = true, ParameterSetName = ParameterSetDefault)]
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSetDefault)]
         [Parameter(Mandatory = true, ParameterSetName = ParameterSetByVersion)]
         [Parameter(Mandatory = true, ParameterSetName = ParameterSetLatestPublished)]
         [ValidateNotNullOrEmpty]
-        public string ManagementGroupName { get; set; }
+        public string[] ManagementGroupName { get; set; }
 
         [Parameter(Mandatory = true, ParameterSetName = ParameterSetByVersion)]
         [ValidateNotNullOrEmpty]
@@ -59,19 +60,28 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #region Cmdlet Overrides
         public override void ExecuteCmdlet()
         {
-            switch (ParameterSetName)
+            try
             {
-                case ParameterSetDefault:
-                    HandleDefaultParameterSet();
-                    break;
+                switch (ParameterSetName)
+                {
+                    case ParameterSetDefault:
+                        HandleDefaultParameterSet();
+                        break;
 
-                case ParameterSetByVersion:
-                    HandleByVersionParameterSet();
-                    break;
+                    case ParameterSetByVersion:
+                        EnsureManagementGroupSize(1);
+                        HandleByVersionParameterSet();
+                        break;
 
-                case ParameterSetLatestPublished:
-                    HandleLatestPublishedParameterSet();
-                    break;
+                    case ParameterSetLatestPublished:
+                        EnsureManagementGroupSize(1);
+                        HandleLatestPublishedParameterSet();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteExceptionError(ex);
             }
         }
         #endregion Cmdlet Overrides
@@ -82,17 +92,24 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// </summary>
         /// <remarks>
         /// The "Default" parameter set fetches either all blueprints or named blueprints.
-        /// Both published and draft blueprints are used.
+        /// Both published and draft blueprints are retrieved.
         /// </remarks>
         private void HandleDefaultParameterSet()
         {
-            if (Name == null)
+            if (ManagementGroupName == null || ManagementGroupName.Length > 1)
             {
-                ProcessBlueprints();
+                ProcessBlueprintsFromAllManagementGroups();
             }
             else
             {
-                ProcessNamedBlueprints();
+                if (Name == null)
+                {
+                    ProcessBlueprintsFromManagementGroup(ManagementGroupName[0]);
+                }
+                else
+                {
+                    ProcessNamedBlueprints(ManagementGroupName[0]);
+                }
             }
         }
 
@@ -109,13 +126,13 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 try
                 {
-                    var bp = Client.PublishedBlueprints.Get(ManagementGroupName, name, VersionName);
-
-                    WriteObject(PSPublishedBlueprint.FromPublishedBlueprintModel(bp, ManagementGroupName));
+                    var bp = BlueprintClient.GetPublishedBlueprint(ManagementGroupName[0], name, VersionName);
+                    WriteObject(bp);
                 }
                 catch (Exception ex)
                 {
-                    WriteExceptionError(ex);
+                    if (Name.Length == 1)
+                        WriteExceptionError(ex);
                 }
             }
         }
@@ -130,118 +147,126 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         {
             foreach (var name in Name)
             {
-                Management.Blueprint.Models.PublishedBlueprint latest = null;
-
                 try
                 {
-                    var list = Client.PublishedBlueprints.List(ManagementGroupName, name);
+                    var blueprint = BlueprintClient.GetLatestPublishedBlueprint(ManagementGroupName[0], name);
 
-                    while (true)
-                    {
-                        foreach (var bp in list)
-                        {
-                            if (latest == null)
-                                latest = bp;
-                            else if (CompareDateStrings(bp.Status.LastModified, latest.Status.LastModified) > 0)
-                                latest = bp;
-                        }
-
-                        if (list.NextPageLink == null)
-                            break;
-
-                        list = Client.PublishedBlueprints.ListNext(list.NextPageLink);
-                    }
-
-                    if (latest != null)
-                        WriteObject(PSPublishedBlueprint.FromPublishedBlueprintModel(latest, ManagementGroupName));
+                    if (blueprint != null)
+                        WriteObject(blueprint);
                 }
                 catch (Exception ex)
                 {
-                    WriteExceptionError(ex);
+                    if (Name.Length == 1)
+                        WriteExceptionError(ex);
                 }
             }
         }
 
         /// <summary>
-        /// Fetch all blueprints from the API and write each to the pipeline
+        /// Fetch all blueprints from the given management group
         /// </summary>
-        private void ProcessBlueprints()
+        private async Task<IEnumerable<PSBlueprint>> GetAllBlueprintsFromManagementGroup(string mgName)
         {
             try
             {
-                var list = Client.Blueprints.List(ManagementGroupName);
+                var blueprints = await BlueprintClient.ListBlueprintsAsync(mgName);
 
-                while (true)
-                {
-                    foreach (var bp in list)
-                        WriteObject(PSBlueprint.FromBlueprintModel(bp, ManagementGroupName));
-
-                    if (list.NextPageLink == null)
-                        return;
-
-                    list = Client.Blueprints.ListNext(list.NextPageLink);
-                }
+                return blueprints;
             }
             catch (Exception ex)
             {
                 WriteExceptionError(ex);
+                return new List<PSBlueprint>();
+            }
+        }
+
+        private void ProcessBlueprintsFromManagementGroup(string mgName)
+        {
+            var result = GetAllBlueprintsFromManagementGroup(mgName).Result;
+
+            if (result != null)
+            {
+                foreach (var bp in result)
+                    WriteObject(bp);
             }
         }
 
         /// <summary>
         /// Fetch named blueprint(s) from the API and write each to the pipeline
         /// </summary>
-        private void ProcessNamedBlueprints()
+        private void ProcessNamedBlueprints(string mgName)
         {
             foreach (var name in Name)
             {
                 try
                 {
-                    var bp = Client.Blueprints.Get(ManagementGroupName, name);
-
-                    WriteObject(PSBlueprint.FromBlueprintModel(bp, ManagementGroupName));
+                    var bp = BlueprintClient.GetBlueprint(mgName, name);
+                    WriteObject(bp);
                 }
                 catch (Exception ex)
                 {
-                    WriteExceptionError(ex);
+                    if (Name.Length == 1)
+                        WriteExceptionError(ex);
                 }
             }
         }
-    
+
         /// <summary>
-        /// Compare two strings representing date/time values
+        /// Fetch the list of Management Groups and iterate over them.
+        /// If no names were given, output all blueprints from all groups.
+        /// If names were given, output only the named blueprints from each group.
         /// </summary>
-        /// <param name="first">First string to compare.</param>
-        /// <param name="second">Second string to compare</param>
-        /// <returns>
-        /// An integer value that is less than zero if first is earlier than second, greater than zero if first is later than second,
-        /// or equal to zero if first is the same as second.
-        /// </returns>
-        /// <remarks>
-        /// In the event that one or both strings cannot be parsed into a DateTime object, the unparsable string will be
-        /// treated as a null DateTime? object. If both strings are unparsable they will be considered equal. If one
-        /// string is unparsable it will be considered earlier than the one that is successfully parsed. Otherwise the
-        /// two strings are parsed into DateTime objects and compared with the DateTime.Compare method.
-        /// </remarks>
-        private static int CompareDateStrings(string first, string second)
+        private void ProcessBlueprintsFromAllManagementGroups()
         {
-            DateTime?   dtFirst = null;
-            DateTime?   dtSecond = null;
-            DateTime    dt = new DateTime();
+            foreach (var mgName in GetManagementGroupNames())
+            {
+                var result = GetAllBlueprintsFromManagementGroup(mgName).Result;
 
-            if (DateTime.TryParse(first, out dt))
-                dtFirst = dt;
-            if (DateTime.TryParse(second, out dt))
-                dtSecond = dt;
+                if (result != null)
+                {
+                    if (Name == null)
+                    {
+                        foreach (var bp in result)
+                            WriteObject(bp);
+                    }
+                    else
+                    {
+                        foreach (var bp in result)
+                        {
+                            foreach (var name in Name)
+                            {
+                                if (name.Equals(bp.Name, StringComparison.InvariantCultureIgnoreCase))
+                                    WriteObject(bp);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-            if (dtFirst == null && dtSecond == null)
-                return 0;
-            else if (dtFirst == null)
-                return -1;
-            else if (dtSecond == null)
-                return 1;
+        /// <summary>
+        /// Return a collection of Management Group names.
+        /// If the ManagementGroup property contains any names, the value of
+        /// the property is returned, otherwise a list of names is queried
+        /// via the API.
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<string> GetManagementGroupNames()
+        {
+            if (ManagementGroupName != null && ManagementGroupName.Length > 0)
+                return ManagementGroupName;
 
-            return DateTime.Compare(dtFirst.Value, dtSecond.Value);
+            var response = ManagementGroupsClient.ManagementGroups.List();
+            var items = response.Select(managementGroup => managementGroup.Name).ToList();
+            return items;
+        }
+
+        private void EnsureManagementGroupSize(int expectedSize)
+        {
+            if (ManagementGroupName.Length != expectedSize)
+            {
+                throw new ArgumentException("ne ManagementGroupName may be provided.");
+            }
         }
         #endregion Private Methods
     }
