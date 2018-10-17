@@ -58,6 +58,8 @@
     <Compile Include="Cmdlets\GetAzureRMBlueprintAssignment.cs" />
     <Compile Include="Cmdlets\NewAzureRMBlueprintAssignment.cs" />
     <Compile Include="Cmdlets\RemoveAzureRMBlueprintAssignment.cs" />
+    <Compile Include="Common\BlueprintClient.cs" />
+    <Compile Include="Common\IBlueprintClient.cs" />
     <Compile Include="Models\PSAssignmentLockSettings.cs" />
     <Compile Include="Models\PSAssignmentStatus.cs" />
     <Compile Include="Models\PSAzureResourceBase.cs" />
@@ -83,6 +85,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="AzureRM.Blueprint.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Profile\Commands.Profile\Commands.Profile.csproj">
@@ -101,6 +106,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint.0.9.1-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Azure.Management.ManagementGroups">
+      <HintPath>..\..\..\packages\Microsoft.Azure.Management.ManagementGroups.1.1.0-preview\lib\net452\Microsoft.Azure.Management.ManagementGroups.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
