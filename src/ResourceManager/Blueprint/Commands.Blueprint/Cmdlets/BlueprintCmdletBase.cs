@@ -12,20 +12,19 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Microsoft.Azure.Commands.Blueprint.Common;
 using Microsoft.Azure.Commands.Common.Authentication;
 using Microsoft.Azure.Commands.Common.Authentication.Abstractions;
 using Microsoft.Azure.Commands.ResourceManager.Common;
 using Microsoft.Azure.Management.Blueprint;
+using Microsoft.Azure.Management.ManagementGroups;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     public class BlueprintCmdletBase : AzureRMCmdlet
     {
+        #region Obsolete
         private const string ARMFrontDoor = "https://management.azure.com";
 
         private IBlueprintManagementClient client;
@@ -44,5 +43,59 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 return client;
             }
         }
+        #endregion Obsolete
+
+        #region Properties
+        /// <summary>
+        /// The blueprint client.
+        /// </summary>
+        private IBlueprintClient blueprintClient;
+
+        public IBlueprintClient BlueprintClient
+        {
+            get
+            {
+                return blueprintClient = blueprintClient ?? new BlueprintClient(DefaultProfile.DefaultContext);
+            }
+            set
+            {
+                blueprintClient = value;
+            }
+        }
+
+        private IManagementGroupsAPIClient managementGroupsApiClient;
+        public IManagementGroupsAPIClient ManagementGroupsClient
+        {
+            get
+            {
+                return managementGroupsApiClient ??
+                      (managementGroupsApiClient =
+                        AzureSession.Instance.ClientFactory.CreateArmClient<ManagementGroupsAPIClient>(DefaultProfile.DefaultContext,
+                                                                                                       AzureEnvironment.Endpoint.ResourceManager));
+            }
+            set
+            {
+                managementGroupsApiClient = value;
+            }
+        }
+        #endregion Properties
+
+        #region Cmdlet Overrides
+        protected override void WriteExceptionError(Exception ex)
+        {
+            var aggEx = ex as AggregateException;
+
+            if (aggEx != null && aggEx.InnerExceptions != null)
+            {
+                foreach (var e in aggEx.Flatten().InnerExceptions)
+                    WriteExceptionError(e);
+
+                return;
+            }
+
+            base.WriteExceptionError(ex);
+        }
+        #endregion Cmdlet Overrides
+
     }
 }
