@@ -69,12 +69,12 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                         break;
 
                     case ParameterSetByVersion:
-                        EnsureManagementGroupSize(1);
+                        EnsureSingleManagementGroup();
                         HandleByVersionParameterSet();
                         break;
 
                     case ParameterSetLatestPublished:
-                        EnsureManagementGroupSize(1);
+                        EnsureSingleManagementGroup();
                         HandleLatestPublishedParameterSet();
                         break;
                 }
@@ -126,8 +126,8 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 try
                 {
-                    var bp = BlueprintClient.GetPublishedBlueprint(ManagementGroupName[0], name, VersionName);
-                    WriteObject(bp);
+                    var blueprint = BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName[0], name, VersionName).Result;
+                    WriteObject(blueprint);
                 }
                 catch (Exception ex)
                 {
@@ -149,7 +149,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 try
                 {
-                    var blueprint = BlueprintClient.GetLatestPublishedBlueprint(ManagementGroupName[0], name);
+                    var blueprint = BlueprintClient.GetLatestPublishedBlueprintAsync(ManagementGroupName[0], name).Result;
 
                     if (blueprint != null)
                         WriteObject(blueprint);
@@ -200,8 +200,8 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 try
                 {
-                    var bp = BlueprintClient.GetBlueprint(mgName, name);
-                    WriteObject(bp);
+                    var blueprint = BlueprintClient.GetBlueprintAsync(mgName, name).Result;
+                    WriteObject(blueprint);
                 }
                 catch (Exception ex)
                 {
@@ -218,9 +218,14 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// </summary>
         private void ProcessBlueprintsFromAllManagementGroups()
         {
+            var taskList = new List<Task<IEnumerable<PSBlueprint>>>();
+
             foreach (var mgName in GetManagementGroupNames())
+                taskList.Add(GetAllBlueprintsFromManagementGroup(mgName));
+
+            foreach (var task in taskList)
             {
-                var result = GetAllBlueprintsFromManagementGroup(mgName).Result;
+                var result = task.Result;
 
                 if (result != null)
                 {
@@ -261,11 +266,11 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             return items;
         }
 
-        private void EnsureManagementGroupSize(int expectedSize)
+        private void EnsureSingleManagementGroup()
         {
-            if (ManagementGroupName.Length != expectedSize)
+            if (ManagementGroupName.Length != 1)
             {
-                throw new ArgumentException("ne ManagementGroupName may be provided.");
+                throw new ArgumentException("Only one ManagementGroupName may be provided.");
             }
         }
         #endregion Private Methods

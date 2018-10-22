@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Commands.Blueprint.Models
 {
-    public enum PSProvisioningState
+    public enum PSAssignmentProvisioningState
     {
         Unknown = 0,
         Creating = 1,

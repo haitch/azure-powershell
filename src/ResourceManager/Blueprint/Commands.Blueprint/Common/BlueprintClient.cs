@@ -68,38 +68,38 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
             //client.HttpClient.DefaultRequestHeaders.Add(Constants.ClientRequestIdHeaderName, clientRequestId);
         }
 
-        public PSBlueprint GetBlueprint(string mgName, string blueprintName)
+        public async Task<PSBlueprint> GetBlueprintAsync(string mgName, string blueprintName)
         {
-            var response = blueprintManagementClient.Blueprints.GetWithHttpMessagesAsync(mgName, blueprintName);
+            var response = await blueprintManagementClient.Blueprints.GetWithHttpMessagesAsync(mgName, blueprintName);
             
-            return PSBlueprint.FromBlueprintModel(response.Result.Body, mgName);
+            return PSBlueprint.FromBlueprintModel(response.Body, mgName);
         }
 
-        public PSBlueprintAssignment GetBlueprintAssignment(string subscriptionId, string blueprintAssignmentName)
+        public async Task<PSBlueprintAssignment> GetBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName)
         {
-            var response = blueprintManagementClient.Assignments.GetWithHttpMessagesAsync(subscriptionId, blueprintAssignmentName);
+            var response = await blueprintManagementClient.Assignments.GetWithHttpMessagesAsync(subscriptionId, blueprintAssignmentName);
 
-            return PSBlueprintAssignment.FromAssignment(response.Result.Body, subscriptionId);
+            return PSBlueprintAssignment.FromAssignment(response.Body, subscriptionId);
         }
 
-        public PSPublishedBlueprint GetPublishedBlueprint(string mgName, string blueprintName, string version)
+        public async Task<PSPublishedBlueprint> GetPublishedBlueprintAsync(string mgName, string blueprintName, string version)
         {
-            var response = blueprintManagementClient.PublishedBlueprints.GetWithHttpMessagesAsync(mgName, blueprintName, version);
+            var response = await blueprintManagementClient.PublishedBlueprints.GetWithHttpMessagesAsync(mgName, blueprintName, version);
 
-            return PSPublishedBlueprint.FromPublishedBlueprintModel(response.Result.Body, mgName);
+            return PSPublishedBlueprint.FromPublishedBlueprintModel(response.Body, mgName);
         }
 
-        public PSPublishedBlueprint GetLatestPublishedBlueprint(string mgName, string blueprintName)
+        public async Task<PSPublishedBlueprint> GetLatestPublishedBlueprintAsync(string mgName, string blueprintName)
         {
             var list = new List<PublishedBlueprint>();
-            var response = blueprintManagementClient.PublishedBlueprints.ListWithHttpMessagesAsync(mgName, blueprintName);
+            var response = await blueprintManagementClient.PublishedBlueprints.ListWithHttpMessagesAsync(mgName, blueprintName);
 
-            list.AddRange(response.Result.Body);
+            list.AddRange(response.Body);
 
-            while (response.Result.Body.NextPageLink != null)
+            while (response.Body.NextPageLink != null)
             {
-                response = blueprintManagementClient.PublishedBlueprints.ListNextWithHttpMessagesAsync(response.Result.Body.NextPageLink);
-                list.AddRange(response.Result.Body);
+                response = await blueprintManagementClient.PublishedBlueprints.ListNextWithHttpMessagesAsync(response.Body.NextPageLink);
+                list.AddRange(response.Body);
             }
 
             PublishedBlueprint latest = null;
@@ -118,17 +118,17 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
             return null;
         }
 
-        public IEnumerable<PSBlueprintAssignment> ListBlueprintAssignments(string subscriptionId)
+        public async Task<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignmentsAsync(string subscriptionId)
         {
             var list = new List<PSBlueprintAssignment>();
-            var response = blueprintManagementClient.Assignments.ListWithHttpMessagesAsync(subscriptionId);
+            var response = await blueprintManagementClient.Assignments.ListWithHttpMessagesAsync(subscriptionId);
 
-            list.AddRange(response.Result.Body.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId)));
+            list.AddRange(response.Body.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId)));
 
-            while (response.Result.Body.NextPageLink != null)
+            while (response.Body.NextPageLink != null)
             {
-                response = blueprintManagementClient.Assignments.ListNextWithHttpMessagesAsync(response.Result.Body.NextPageLink);
-                list.AddRange(response.Result.Body.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId)));
+                response = await blueprintManagementClient.Assignments.ListNextWithHttpMessagesAsync(response.Body.NextPageLink);
+                list.AddRange(response.Body.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId)));
             }
 
             return list;
@@ -150,6 +150,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
             return list;
         }
 
+        #if false
         public IEnumerable<PSPublishedBlueprint> ListPublishedBlueprints(string mgName, string blueprintName)
         {
             var list = new List<PSPublishedBlueprint>();
@@ -165,6 +166,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
 
             return list;
         }
+        #endif
         public async Task<IEnumerable<PSPublishedBlueprint>> ListPublishedBlueprintsAsync(string mgName, string blueprintName)
         {
             var list = new List<PSPublishedBlueprint>();

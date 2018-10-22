@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
         public IDictionary<string, PSResourceGroupValue> ResourceGroups { get; set; }
         public PSAssignmentStatus Status { get; set; }
         public PSAssignmentLockSettings Locks { get; set; }
-        public PSProvisioningState ProvisioningState {get; set; }    //TODO: private set?
+        public PSAssignmentProvisioningState ProvisioningState {get; set; }    //TODO: private set?
 
         /// <summary>
         /// Create a PSBluprintAssignment object from an Assignment model.
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
                 DisplayName = assignment.DisplayName,
                 Description = assignment.Description,
                 BlueprintId = assignment.BlueprintId,
-                ProvisioningState = PSProvisioningState.Unknown,
+                ProvisioningState = PSAssignmentProvisioningState.Unknown,
                 Status = new PSAssignmentStatus(),
                 Locks = new PSAssignmentLockSettings { Mode = PSLockMode.Unknown },
                 Parameters = new Dictionary<string, PSParameterValueBase>(),
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
             if (DateTime.TryParse(assignment.Status.LastModified, out DateTime lastModified))
                 psAssignment.Status.LastModified = lastModified;
 
-            if (Enum.TryParse(assignment.ProvisioningState, true, out PSProvisioningState state))
+            if (Enum.TryParse(assignment.ProvisioningState, true, out PSAssignmentProvisioningState state))
                 psAssignment.ProvisioningState = state;
 
             if (Enum.TryParse(assignment.Locks.Mode, true, out PSLockMode lockMode))

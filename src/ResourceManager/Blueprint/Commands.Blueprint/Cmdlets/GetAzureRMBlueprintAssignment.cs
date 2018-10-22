@@ -58,19 +58,10 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         {
             try
             {
-                string subscription = Subscription ?? DefaultContext.Subscription.Id;
-                var list = Client.Assignments.List(subscription);
+                string subscriptionId = Subscription ?? DefaultContext.Subscription.Id;
+                var assignments = BlueprintClient.ListBlueprintAssignmentsAsync(subscriptionId).Result;
 
-                while (true)
-                {
-                    foreach (var assignment in list)
-                        WriteObject(PSBlueprintAssignment.FromAssignment(assignment, subscription));
-
-                    if (list.NextPageLink == null)
-                        return;
-
-                    list = Client.Assignments.ListNext(list.NextPageLink);
-                }
+                WriteObject(assignments, true);
             }
             catch (Exception ex)
             {
@@ -89,9 +80,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 try
                 {
-                    var assignment = Client.Assignments.Get(subscription, name);
+                    var assignment = BlueprintClient.GetBlueprintAssignmentAsync(subscription, name).Result;
 
-                    WriteObject(PSBlueprintAssignment.FromAssignment(assignment, subscription));
+                    WriteObject(assignment);
                 }
                 catch (Exception ex)
                 {

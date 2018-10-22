@@ -25,17 +25,17 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
 
         Task<IEnumerable<PSBlueprint>> ListBlueprintsAsync(string mgName);
 
-        PSBlueprint GetBlueprint(string mgName, string blueprintName);
+        Task<PSBlueprint> GetBlueprintAsync(string mgName, string blueprintName);
 
-        IEnumerable<PSPublishedBlueprint> ListPublishedBlueprints(string mgName, string blueprintName);
+        //IEnumerable<PSPublishedBlueprint> ListPublishedBlueprints(string mgName, string blueprintName);
         Task<IEnumerable<PSPublishedBlueprint>> ListPublishedBlueprintsAsync(string mgName, string blueprintName);
 
-        PSPublishedBlueprint GetPublishedBlueprint(string mgName, string blueprintName, string version);
+        Task<PSPublishedBlueprint> GetPublishedBlueprintAsync(string mgName, string blueprintName, string version);
 
-        PSPublishedBlueprint GetLatestPublishedBlueprint(string mgName, string blueprintName);
+        Task<PSPublishedBlueprint> GetLatestPublishedBlueprintAsync(string mgName, string blueprintName);
 
-        IEnumerable<PSBlueprintAssignment> ListBlueprintAssignments(string subscriptionId);
+        Task<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignmentsAsync(string subscriptionId);
 
-        PSBlueprintAssignment GetBlueprintAssignment(string subscriptionId, string blueprintAssignmentName);
+        Task<PSBlueprintAssignment> GetBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName);
     }
 }

@@ -22,8 +22,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
 {
     public class PSAzureResourceBase
     {
+        public string Id { get; set; }
+        public string Type { get; set; }
         public string Name { get; set; }
-        public string ManagementGroupName { get; set; }
 
         public PSAzureResourceBase()
         {

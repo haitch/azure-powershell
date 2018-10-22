@@ -73,7 +73,7 @@
     <Compile Include="Models\PSManagementGroupResourceBase.cs" />
     <Compile Include="Models\PSParameterDefinition.cs" />
     <Compile Include="Models\PSParameterValueBase.cs" />
-    <Compile Include="Models\PSProvisioningState.cs" />
+    <Compile Include="Models\PSAssignmentProvisioningState.cs" />
     <Compile Include="Models\PSPublishedBlueprint.cs" />
     <Compile Include="Models\PSResourceGroupDefinition.cs" />
     <Compile Include="Models\PSResourceGroupValue.cs" />

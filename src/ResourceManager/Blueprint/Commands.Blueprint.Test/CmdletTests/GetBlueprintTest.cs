@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Commands.ResourceManager.Blueprint.Test.UnitTests
     [TestClass]
     public class GetAzureBlueprintTest : RMTestBase
     {
-        private Mock<IBlueprintClient> mockAutomationClient;
+        private Mock<IBlueprintClient> mockBlueprintClient;
 
         private MockCommandRuntime mockCommandRuntime;
 
@@ -38,30 +38,30 @@ namespace Microsoft.Azure.Commands.ResourceManager.Blueprint.Test.UnitTests
         [TestInitialize]
         public void SetupTest()
         {
-            this.mockAutomationClient = new Mock<IBlueprintClient>();
+            this.mockBlueprintClient = new Mock<IBlueprintClient>();
             this.mockCommandRuntime = new MockCommandRuntime();
             this.cmdlet = new GetAzureRMBlueprint
             {
-                BlueprintClient = this.mockAutomationClient.Object,
+                BlueprintClient = this.mockBlueprintClient.Object,
                 CommandRuntime = this.mockCommandRuntime
             };
         }
 
         [TestMethod]
-        public void GetAzureAutomationAllAccountsSuccessfull()
+        public void GetAzureBlueprintAllAccountsSuccessfull()
         {
             // Setup
             string mgName = "resourceGroup";
             string nextLink = string.Empty;
 
-            this.mockAutomationClient.Setup(f => f.ListBlueprintsAsync(mgName)).Returns( (string a) => Task.FromResult<IEnumerable<PSBlueprint>>(new List<PSBlueprint>()));
+            this.mockBlueprintClient.Setup(f => f.ListBlueprintsAsync(mgName)).Returns( (string a) => Task.FromResult<IEnumerable<PSBlueprint>>(new List<PSBlueprint>()));
 
             // Test
             this.cmdlet.ManagementGroupName = new string[] { mgName };
             this.cmdlet.ExecuteCmdlet();
 
             // Assert
-            this.mockAutomationClient.Verify(f => f.ListBlueprintsAsync(mgName), Times.Once());
+            this.mockBlueprintClient.Verify(f => f.ListBlueprintsAsync(mgName), Times.Once());
         }
     }
 }
