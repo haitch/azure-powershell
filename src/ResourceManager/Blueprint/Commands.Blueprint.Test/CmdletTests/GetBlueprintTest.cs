@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Commands.ResourceManager.Blueprint.Test.UnitTests
         }
 
         [TestMethod]
-        public void GetAzureBlueprintAllAccountsSuccessfull()
+        public void GetAzureBlueprintAllAccountsSuccessful()
         {
             // Setup
             string mgName = "resourceGroup";

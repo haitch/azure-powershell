@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
     {
         #region Parameters
         [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true)]
-        [ValidateNotNull]
+        [ValidateNotNullOrEmpty]
         public string[] Name { get; set; }
 
         [Parameter(Mandatory = false)]

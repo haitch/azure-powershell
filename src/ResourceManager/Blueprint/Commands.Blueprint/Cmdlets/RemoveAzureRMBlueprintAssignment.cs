@@ -70,7 +70,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             string subscription = Subscription ?? DefaultContext.Subscription.Id;
 
             foreach (var name in Name)
+            {
                 PerformDelete(subscription, name);
+            }
         }
 
         /// <summary>
@@ -84,7 +86,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         private void HandleInputObjectParameterSet()
         {
             foreach (var assignment in InputObject)
+            {
                 PerformDelete(assignment.SubscriptionId, assignment.Name);
+            }
         }
 
         /// <summary>
@@ -98,10 +102,12 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 if (ShouldProcess(subscription + "/" + name))
                 {
-                    var assignment = Client.Assignments.Delete(subscription, name);
+                    var assignment = BlueprintClient.DeleteBlueprintAssignmentAsync(subscription, name).Result;
 
                     if (assignment != null)
-                        WriteObject(PSBlueprintAssignment.FromAssignment(assignment, subscription));
+                    {
+                        WriteObject(assignment);
+                    }
                 }
             }
             catch (Exception ex)

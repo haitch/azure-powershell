@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
         [Parameter(Mandatory = true, ParameterSetName = ParameterSetByVersion)]
         [ValidateNotNullOrEmpty]
-        public string VersionName { get; set; }
+        public string BlueprintVersion { get; set; }
 
         [Parameter(Mandatory = true, ParameterSetName = ParameterSetLatestPublished)]
         public SwitchParameter LatestPublished { get; set; }
@@ -126,13 +126,16 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 try
                 {
-                    var blueprint = BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName[0], name, VersionName).Result;
+                    var blueprint = BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName[0], name, BlueprintVersion).Result;
                     WriteObject(blueprint);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
+                    // If only a single Name is given this is an error, othwise the error is ignored.
                     if (Name.Length == 1)
-                        WriteExceptionError(ex);
+                    {
+                        throw;
+                    }
                 }
             }
         }
@@ -152,12 +155,17 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                     var blueprint = BlueprintClient.GetLatestPublishedBlueprintAsync(ManagementGroupName[0], name).Result;
 
                     if (blueprint != null)
+                    {
                         WriteObject(blueprint);
+                    }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
+                    // If only a single Name is given this is an error, othwise the error is ignored.
                     if (Name.Length == 1)
-                        WriteExceptionError(ex);
+                    {
+                        throw;
+                    }
                 }
             }
         }
@@ -167,17 +175,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         /// </summary>
         private async Task<IEnumerable<PSBlueprint>> GetAllBlueprintsFromManagementGroup(string mgName)
         {
-            try
-            {
-                var blueprints = await BlueprintClient.ListBlueprintsAsync(mgName);
-
-                return blueprints;
-            }
-            catch (Exception ex)
-            {
-                WriteExceptionError(ex);
-                return new List<PSBlueprint>();
-            }
+            return await BlueprintClient.ListBlueprintsAsync(mgName);
         }
 
         private void ProcessBlueprintsFromManagementGroup(string mgName)
@@ -187,7 +185,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             if (result != null)
             {
                 foreach (var bp in result)
+                {
                     WriteObject(bp);
+                }
             }
         }
 
@@ -203,10 +203,13 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                     var blueprint = BlueprintClient.GetBlueprintAsync(mgName, name).Result;
                     WriteObject(blueprint);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
+                    // If only a single Name is given this is an error, othwise the error is ignored.
                     if (Name.Length == 1)
-                        WriteExceptionError(ex);
+                    {
+                        throw;
+                    }
                 }
             }
         }
@@ -221,7 +224,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             var taskList = new List<Task<IEnumerable<PSBlueprint>>>();
 
             foreach (var mgName in GetManagementGroupNames())
+            {
                 taskList.Add(GetAllBlueprintsFromManagementGroup(mgName));
+            }
 
             foreach (var task in taskList)
             {
@@ -232,7 +237,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                     if (Name == null)
                     {
                         foreach (var bp in result)
+                        {
                             WriteObject(bp);
+                        }
                     }
                     else
                     {
@@ -241,7 +248,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                             foreach (var name in Name)
                             {
                                 if (name.Equals(bp.Name, StringComparison.InvariantCultureIgnoreCase))
+                                {
                                     WriteObject(bp);
+                                }
                             }
                         }
                     }
@@ -251,7 +260,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
         /// <summary>
         /// Return a collection of Management Group names.
-        /// If the ManagementGroup property contains any names, the value of
+        /// If the ManagementGroupName property contains any names, the value of
         /// the property is returned, otherwise a list of names is queried
         /// via the API.
         /// </summary>
@@ -259,18 +268,19 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         private IEnumerable<string> GetManagementGroupNames()
         {
             if (ManagementGroupName != null && ManagementGroupName.Length > 0)
+            {
                 return ManagementGroupName;
+            }
 
             var response = ManagementGroupsClient.ManagementGroups.List();
-            var items = response.Select(managementGroup => managementGroup.Name).ToList();
-            return items;
+            return response.Select(managementGroup => managementGroup.Name).ToList();
         }
 
         private void EnsureSingleManagementGroup()
         {
-            if (ManagementGroupName.Length != 1)
+            if (ManagementGroupName == null || ManagementGroupName.Length != 1)
             {
-                throw new ArgumentException("Only one ManagementGroupName may be provided.");
+                throw new ArgumentException("One ManagementGroupName must be provided.");
             }
         }
         #endregion Private Methods

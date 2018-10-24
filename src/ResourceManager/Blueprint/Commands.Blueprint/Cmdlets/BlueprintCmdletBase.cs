@@ -16,7 +16,6 @@ using Microsoft.Azure.Commands.Blueprint.Common;
 using Microsoft.Azure.Commands.Common.Authentication;
 using Microsoft.Azure.Commands.Common.Authentication.Abstractions;
 using Microsoft.Azure.Commands.ResourceManager.Common;
-using Microsoft.Azure.Management.Blueprint;
 using Microsoft.Azure.Management.ManagementGroups;
 using System;
 
@@ -24,27 +23,6 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     public class BlueprintCmdletBase : AzureRMCmdlet
     {
-        #region Obsolete
-        private const string ARMFrontDoor = "https://management.azure.com";
-
-        private IBlueprintManagementClient client;
-
-        /// <summary>
-        /// Gets the Blueprint Client object.
-        /// </summary>
-        protected IBlueprintManagementClient Client
-        {
-            get
-            {
-                if (client == null)
-                    client = new BlueprintManagementClient(new Uri(ARMFrontDoor),
-                                                           AzureSession.Instance.AuthenticationFactory.GetServiceClientCredentials(DefaultProfile.DefaultContext));
-
-                return client;
-            }
-        }
-        #endregion Obsolete
-
         #region Properties
         /// <summary>
         /// The blueprint client.
@@ -68,10 +46,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         {
             get
             {
-                return managementGroupsApiClient ??
-                      (managementGroupsApiClient =
-                        AzureSession.Instance.ClientFactory.CreateArmClient<ManagementGroupsAPIClient>(DefaultProfile.DefaultContext,
-                                                                                                       AzureEnvironment.Endpoint.ResourceManager));
+                return managementGroupsApiClient = managementGroupsApiClient ??
+                            AzureSession.Instance.ClientFactory.CreateArmClient<ManagementGroupsAPIClient>(DefaultProfile.DefaultContext,
+                                                                                                           AzureEnvironment.Endpoint.ResourceManager);
             }
             set
             {
@@ -88,12 +65,14 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             if (aggEx != null && aggEx.InnerExceptions != null)
             {
                 foreach (var e in aggEx.Flatten().InnerExceptions)
+                {
                     WriteExceptionError(e);
+                }
 
                 return;
             }
 
-            base.WriteExceptionError(ex);
+            throw ex;
         }
         #endregion Cmdlet Overrides
 

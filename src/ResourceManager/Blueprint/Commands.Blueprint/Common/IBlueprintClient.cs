@@ -37,5 +37,10 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
         Task<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignmentsAsync(string subscriptionId);
 
         Task<PSBlueprintAssignment> GetBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName);
+
+        Task<PSBlueprintAssignment> DeleteBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName);
+
+        Task<PSBlueprintAssignment> CreateOrUpdateBlueprintAssignmentAsync(string subscriptionId, string assignmentName,
+                                                                           Microsoft.Azure.Management.Blueprint.Models.Assignment assignment);
     }
 }

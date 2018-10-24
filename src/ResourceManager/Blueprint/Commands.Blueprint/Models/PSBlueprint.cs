@@ -41,21 +41,28 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
                 DisplayName = model.DisplayName,
                 Description = model.Description,
                 Status = new PSBlueprintStatus(),
-                TargetScope = PSTargetScope.Unknown,
+                TargetScope = PSBlueprintTargetScope.ManagementGroup,
                 Parameters = new Dictionary<string, PSParameterDefinition>(),
                 ResourceGroups = new Dictionary<string, PSResourceGroupDefinition>(),
                 Versions = model.Versions
             };
 
             if (DateTime.TryParse(model.Status.TimeCreated, out DateTime timeCreated))
+            {
                 psBlueprint.Status.TimeCreated = timeCreated;
+            }
             if (DateTime.TryParse(model.Status.LastModified, out DateTime lastModified))
+            {
                 psBlueprint.Status.LastModified = lastModified;
+            }
 
-            if (Enum.TryParse(model.TargetScope, true, out PSTargetScope scope))
+            if (Enum.TryParse(model.TargetScope, true, out PSBlueprintTargetScope scope))
+            {
                 psBlueprint.TargetScope = scope;
+            }
 
             foreach (var item in model.Parameters)
+            {
                 psBlueprint.Parameters.Add(item.Key,
                                             new PSParameterDefinition
                                             {
@@ -66,8 +73,10 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
                                                 DefaultValue = item.Value.DefaultValue,
                                                 AllowedValues = item.Value.AllowedValues.ToList()
                                             });
+            }
 
             foreach (var item in model.ResourceGroups)
+            {
                 psBlueprint.ResourceGroups.Add(item.Key,
                                                 new PSResourceGroupDefinition
                                                 {
@@ -78,6 +87,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
                                                     StrongType = item.Value.StrongType,
                                                     DependsOn = item.Value.DependsOn.ToList()
                                                 });
+            }
 
             return psBlueprint;
         }

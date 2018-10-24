@@ -91,31 +91,18 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
 
         public async Task<PSPublishedBlueprint> GetLatestPublishedBlueprintAsync(string mgName, string blueprintName)
         {
-            var list = new List<PublishedBlueprint>();
-            var response = await blueprintManagementClient.PublishedBlueprints.ListWithHttpMessagesAsync(mgName, blueprintName);
+            PSPublishedBlueprint latest = null;
+            var response = await ListPublishedBlueprintsAsync(mgName, blueprintName);
 
-            list.AddRange(response.Body);
-
-            while (response.Body.NextPageLink != null)
-            {
-                response = await blueprintManagementClient.PublishedBlueprints.ListNextWithHttpMessagesAsync(response.Body.NextPageLink);
-                list.AddRange(response.Body);
-            }
-
-            PublishedBlueprint latest = null;
-
-            foreach (var bp in list)
+            foreach (var blueprint in response)
             {
                 if (latest == null)
-                    latest = bp;
-                else if (CompareDateStrings(bp.Status.LastModified, latest.Status.LastModified) > 0)
-                    latest = bp;
+                    latest = blueprint;
+                else if (CompareDates(blueprint.Status.LastModified, latest.Status.LastModified) > 0)
+                    latest = blueprint;
             }
 
-            if (latest != null)
-                return PSPublishedBlueprint.FromPublishedBlueprintModel(latest, mgName);
-
-            return null;
+            return latest;
         }
 
         public async Task<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignmentsAsync(string subscriptionId)
@@ -150,23 +137,6 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
             return list;
         }
 
-        #if false
-        public IEnumerable<PSPublishedBlueprint> ListPublishedBlueprints(string mgName, string blueprintName)
-        {
-            var list = new List<PSPublishedBlueprint>();
-            var response = blueprintManagementClient.PublishedBlueprints.ListWithHttpMessagesAsync(mgName, blueprintName);
-
-            list.AddRange(response.Result.Body.Select(bp => PSPublishedBlueprint.FromPublishedBlueprintModel(bp, mgName)));
-
-            while (response.Result.Body.NextPageLink != null)
-            {
-                response = blueprintManagementClient.PublishedBlueprints.ListNextWithHttpMessagesAsync(response.Result.Body.NextPageLink);
-                list.AddRange(response.Result.Body.Select(bp => PSPublishedBlueprint.FromPublishedBlueprintModel(bp, mgName)));
-            }
-
-            return list;
-        }
-        #endif
         public async Task<IEnumerable<PSPublishedBlueprint>> ListPublishedBlueprintsAsync(string mgName, string blueprintName)
         {
             var list = new List<PSPublishedBlueprint>();
@@ -183,40 +153,49 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
             return list;
         }
 
+        public async Task<PSBlueprintAssignment> DeleteBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName)
+        {
+            var response = await blueprintManagementClient.Assignments.DeleteWithHttpMessagesAsync(subscriptionId, blueprintAssignmentName);
+            
+            if (response.Body != null)
+            {
+                return PSBlueprintAssignment.FromAssignment(response.Body, subscriptionId);
+            }
+
+            return null;
+        }
+
+        public async Task<PSBlueprintAssignment> CreateOrUpdateBlueprintAssignmentAsync(string subscriptionId, string assignmentName, Assignment assignment)
+        {
+            var response = await blueprintManagementClient.Assignments.CreateOrUpdateWithHttpMessagesAsync(subscriptionId, assignmentName, assignment);
+
+            if (response.Body != null)
+            {
+                return PSBlueprintAssignment.FromAssignment(response.Body, subscriptionId);
+            }
+
+            return null;
+        }
+        
         /// <summary>
-        /// Compare two strings representing date/time values
+        /// Compare to nullable DateTime objects
         /// </summary>
-        /// <param name="first">First string to compare.</param>
-        /// <param name="second">Second string to compare</param>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
         /// <returns>
         /// An integer value that is less than zero if first is earlier than second, greater than zero if first is later than second,
         /// or equal to zero if first is the same as second.
         /// </returns>
-        /// <remarks>
-        /// In the event that one or both strings cannot be parsed into a DateTime object, the unparsable string will be
-        /// treated as a null DateTime? object. If both strings are unparsable they will be considered equal. If one
-        /// string is unparsable it will be considered earlier than the one that is successfully parsed. Otherwise the
-        /// two strings are parsed into DateTime objects and compared with the DateTime.Compare method.
-        /// </remarks>
-        private static int CompareDateStrings(string first, string second)
+        private static int CompareDates(DateTime? first, DateTime? second)
         {
-            DateTime?   dtFirst = null;
-            DateTime?   dtSecond = null;
-            DateTime    dt = new DateTime();
-
-            if (DateTime.TryParse(first, out dt))
-                dtFirst = dt;
-            if (DateTime.TryParse(second, out dt))
-                dtSecond = dt;
-
-            if (dtFirst == null && dtSecond == null)
+            if (first == null && second == null)
                 return 0;
-            else if (dtFirst == null)
+            else if (first == null)
                 return -1;
-            else if (dtSecond == null)
+            else if (second == null)
                 return 1;
 
-            return DateTime.Compare(dtFirst.Value, dtSecond.Value);
+            return DateTime.Compare(first.Value, second.Value);
         }
     }
 }

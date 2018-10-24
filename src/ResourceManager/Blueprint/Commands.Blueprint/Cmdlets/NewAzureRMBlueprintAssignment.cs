@@ -13,6 +13,7 @@
 // ----------------------------------------------------------------------------------
 
 using Microsoft.Azure.Commands.Blueprint.Models;
+using Microsoft.Azure.Commands.ResourceManager.Common.ArgumentCompleters;
 using Microsoft.Azure.Management.Blueprint;
 using Microsoft.Azure.Management.Blueprint.Models;
 using System;
@@ -35,7 +36,6 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNull]
-        //public PSBlueprint Blueprint { get; set; }
         public PSBlueprintBase Blueprint { get; set; }
 
         [Parameter(Mandatory = true)]
@@ -57,6 +57,18 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #region Cmdlet Overrides
         public override void ExecuteCmdlet()
         {
+            /* TODO:
+                1.  Register Blueprint RP in the subscription.
+                        Register-AzureRmResourceProvider
+                2.  Grant Owner Permission
+                    a. doing AAD query to resolve Azure Blueprint SPN,
+                        AppId: f71766dc-90d9-4b7d-bd9d-4499c4331c3f
+                        cmdlet: Get-AzureRmADServicePrincipal 
+                    b. grant owner permission to this SPN
+                        New-AzureRmRoleAssignment -ObjectId "from previous step" -Scope "/subscriptions/{}" -RoleDefinitionName "Owner"
+
+                3.  Call BlueprintAssignment.CreateOrUpdate()
+            */
             try
             {
                 AssignmentLockSettings lockSettings = new AssignmentLockSettings { Mode = PSLockMode.None.ToString() };
@@ -81,9 +93,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
                 if (ShouldProcess(Name))
                 {
-                    var assignment = Client.Assignments.CreateOrUpdate(Subscription, Name, localAssignment);
+                    var assignment = BlueprintClient.CreateOrUpdateBlueprintAssignmentAsync(Subscription, Name, localAssignment);
                     if (assignment != null)
-                        WriteObject(PSBlueprintAssignment.FromAssignment(assignment, Subscription));
+                        WriteObject(assignment);
 
                 }
             }
