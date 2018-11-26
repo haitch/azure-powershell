@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Commands.ResourceManager.Blueprint.Test.UnitTests
             this.mockBlueprintClient.Setup(f => f.ListBlueprintsAsync(mgName)).Returns( (string a) => Task.FromResult<IEnumerable<PSBlueprint>>(new List<PSBlueprint>()));
 
             // Test
-            this.cmdlet.ManagementGroupName = new string[] { mgName };
+            this.cmdlet.ManagementGroupName = mgName;
             this.cmdlet.ExecuteCmdlet();
 
             // Assert
