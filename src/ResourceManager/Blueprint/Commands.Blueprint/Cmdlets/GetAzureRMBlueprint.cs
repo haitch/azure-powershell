@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.Get, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "Blueprint")]
-    public class GetAzureRMBlueprint : BlueprintCmdletBase
+    public class GetAzureRmBlueprint : BlueprintCmdletBase
     {
         #region Class Constants
         // Parameter Set names
@@ -43,19 +43,19 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         [Parameter(ParameterSetName = BlueprintDefinitionByName, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
         [Parameter(ParameterSetName = ManagementGroupScope, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Management group name.")]
         [ValidateNotNullOrEmpty]
-        public string ManagementGroupName { get; set; }
+        public string[] ManagementGroupName { get; set; }
 
         [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 2, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
         [Parameter(ParameterSetName = BlueprintDefinitionByName, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
         [ValidateNotNullOrEmpty]
-        public string BlueprintDefinitionName { get; set; }
+        public string Name { get; set; }
 
         [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 2, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
         [ValidateNotNullOrEmpty]
-        public string BlueprintDefinitionVersion { get; set; }
+        public string Version { get; set; }
 
         [Parameter(Mandatory = false, HelpMessage = "Blueprint definition's latest published version.")]
-        public SwitchParameter LatestPublishedVersion { get; set; }
+        public SwitchParameter LatestPublished { get; set; }
         #endregion Parameters
 
         #region Cmdlet Overrides
@@ -66,20 +66,29 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 switch (ParameterSetName)
                 {
                     case ManagementGroupScope:
-                        WriteObject(BlueprintClient.ListBlueprintsAsync(ManagementGroupName).Result);
+
+                        string nextLink = string.Empty;
+
+                        do
+                        {
+                            //ret = this.AutomationClient.ListAutomationAccounts(this.ManagementGroupName[0], ref nextLink);
+                            //this.WriteObject(ret, true);
+
+                        } while (!string.IsNullOrEmpty(nextLink));
+                        //WriteObject(BlueprintClient.ListBlueprintsAsync(ManagementGroupName[0]).Result);
                         break;
                     case BlueprintDefinitionByName:
-                        if (LatestPublishedVersion)
+                        if (LatestPublished)
                         {
-                            WriteObject(BlueprintClient.GetLatestPublishedBlueprintAsync(ManagementGroupName, BlueprintDefinitionName).Result);
+                            //WriteObject(BlueprintClient.GetLatestPublishedBlueprintAsync(ManagementGroupName, Name).Result);
                         }
                         else
                         {
-                            WriteObject(BlueprintClient.GetBlueprintAsync(ManagementGroupName, BlueprintDefinitionName).Result);
+                            //WriteObject(BlueprintClient.GetBlueprintAsync(ManagementGroupName, Name).Result);
                         }
                         break;
                     case BlueprintDefinitionByVersion:
-                        WriteObject(BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName, BlueprintDefinitionName, BlueprintDefinitionVersion).Result);
+                        //WriteObject(BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName, Name, Version).Result);
                         break;
                 }
             }

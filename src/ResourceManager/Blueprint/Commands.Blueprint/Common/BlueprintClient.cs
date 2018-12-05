@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
         }
 
         /// <summary>
-        /// Construct a BlueprintClient from a subscriptin and a BlueprintManagementClient.
+        /// Construct a BlueprintClient from a subscription and a BlueprintManagementClient.
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="blueprintManagementClient"></param>

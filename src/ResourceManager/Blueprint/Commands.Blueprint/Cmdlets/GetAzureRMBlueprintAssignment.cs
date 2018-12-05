@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.Get, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "BlueprintAssignment")]
-    public class GetAzureRMBlueprintAssignment : BlueprintCmdletBase
+    public class GetAzureRmBlueprintAssignment : BlueprintCmdletBase
     {
         #region Class Constants
         // Parameter Set names
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #region Parameters
         [Parameter(ParameterSetName = BlueprintAssignmentByName, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
         [ValidateNotNullOrEmpty]
-        public string BlueprintAssignmentName { get; set; }
+        public string Name { get; set; }
         #endregion Parameters
 
         #region Cmdlet Overrides
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                         WriteObject(BlueprintClient.ListBlueprintAssignmentsAsync(SubscriptionId ?? DefaultContext.Subscription.Id).Result);
                         break;
                     case BlueprintAssignmentByName:
-                        WriteObject(BlueprintClient.GetBlueprintAssignmentAsync(SubscriptionId ?? DefaultContext.Subscription.Id, BlueprintAssignmentName).Result);
+                        WriteObject(BlueprintClient.GetBlueprintAssignmentAsync(SubscriptionId ?? DefaultContext.Subscription.Id, Name).Result);
                         break;
                 }
             }

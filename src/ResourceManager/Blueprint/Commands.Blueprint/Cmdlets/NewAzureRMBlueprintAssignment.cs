@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.New, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "BlueprintAssignment", SupportsShouldProcess = true)]
-    public class NewAzureRMBlueprintAssignment : BlueprintCmdletBase
+    public class NewAzureRmBlueprintAssignment : BlueprintCmdletBase
     {
         #region Class Constants
         // Parameter Set names
@@ -37,15 +37,15 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #region Parameters
         [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
         [ValidateNotNullOrEmpty]
-        public string BlueprintAssignmentName { get; set; }
+        public string Name { get; set; }
 
         [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition object.")]
         [ValidateNotNull]
         public PSBlueprintBase Blueprint { get; set; }
 
-        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Subscription ID to assign Blueprint.")]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Subscription ID to assign Blueprint. Can be a comma delimited list of subscription ID strings.")]
         [ValidateNotNullOrEmpty]
-        public string SubscriptionId { get; set; }
+        public string[] SubscriptionId { get; set; }
 
         [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Region for managed identity to be created in. Learn more at aka.ms/blueprintmsi")]
         [ValidateNotNullOrEmpty]
@@ -85,9 +85,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                     localAssignment.Parameters.Add(key.ToString(), value);
                 }
 
-                if (ShouldProcess(BlueprintAssignmentName))
+                if (ShouldProcess(Name))
                 {
-                    var assignmentResult = BlueprintClient.CreateOrUpdateBlueprintAssignmentAsync(SubscriptionId, BlueprintAssignmentName, localAssignment).Result;
+                    var assignmentResult = BlueprintClient.CreateOrUpdateBlueprintAssignmentAsync(SubscriptionId[0],Name, localAssignment).Result;
                     if (assignmentResult != null) {
                         WriteObject(assignmentResult);
                     }

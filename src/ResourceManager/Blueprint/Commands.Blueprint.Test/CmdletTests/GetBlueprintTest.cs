@@ -33,14 +33,14 @@ namespace Microsoft.Azure.Commands.ResourceManager.Blueprint.Test.UnitTests
 
         private MockCommandRuntime mockCommandRuntime;
 
-        private GetAzureRMBlueprint cmdlet;
+        private GetAzureRmBlueprint cmdlet;
 
         [TestInitialize]
         public void SetupTest()
         {
             this.mockBlueprintClient = new Mock<IBlueprintClient>();
             this.mockCommandRuntime = new MockCommandRuntime();
-            this.cmdlet = new GetAzureRMBlueprint
+            this.cmdlet = new GetAzureRmBlueprint
             {
                 BlueprintClient = this.mockBlueprintClient.Object,
                 CommandRuntime = this.mockCommandRuntime
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Commands.ResourceManager.Blueprint.Test.UnitTests
             this.mockBlueprintClient.Setup(f => f.ListBlueprintsAsync(mgName)).Returns( (string a) => Task.FromResult<IEnumerable<PSBlueprint>>(new List<PSBlueprint>()));
 
             // Test
-            this.cmdlet.ManagementGroupName = mgName;
+            this.cmdlet.ManagementGroupName = new[] {mgName};
             this.cmdlet.ExecuteCmdlet();
 
             // Assert

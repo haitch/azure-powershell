@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.Remove, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "BlueprintAssignment", SupportsShouldProcess = true)]
-    public class RemoveAzureRMBlueprintAssignment : BlueprintCmdletBase
+    public class RemoveAzureRmBlueprintAssignment : BlueprintCmdletBase
     {
         #region Class Constants
         // Parameter Set names
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
         [Parameter(ParameterSetName = DeleteBlueprintAssignment, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
         [ValidateNotNull]
-        public string BlueprintAssignmentName { get; set; }
+        public string Name { get; set; }
 
         // TODO: Find out if deleting a blueprint assignment object supported.
         [Parameter(Mandatory = true, Position = 1, ValueFromPipeline = true, ParameterSetName = "InputObject")]
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 switch (ParameterSetName)
                 {
                     case DeleteBlueprintAssignment:
-                        WriteObject(BlueprintClient.DeleteBlueprintAssignmentAsync(SubscriptionId, BlueprintAssignmentName).Result);
+                        WriteObject(BlueprintClient.DeleteBlueprintAssignmentAsync(SubscriptionId, Name).Result);
                         break;
                     default:
                         throw new PSInvalidOperationException();
