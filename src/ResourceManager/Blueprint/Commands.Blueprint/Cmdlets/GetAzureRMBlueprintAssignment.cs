@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #endregion Sets
 
         [Parameter(ParameterSetName = BlueprintAssignmentByName, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
-        [Parameter(ParameterSetName = SubscriptionScope, Position = 0, Mandatory = false, ValueFromPipelineByPropertyName = true, HelpMessage = "Subscriptin Id.")]
+        [Parameter(ParameterSetName = SubscriptionScope, Position = 0, Mandatory = false, ValueFromPipelineByPropertyName = true, HelpMessage = "Subscription Id.")]
         [ValidateNotNullOrEmpty]
         public string SubscriptionId { get; set; }
 

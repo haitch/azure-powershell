@@ -41,9 +41,9 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         //[Parameter(ParameterSetName = BlueprintDefinitionLatestPublished, Mandatory = false, HelpMessage = "Blueprint definition's latest published version.")]
         [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
         [Parameter(ParameterSetName = BlueprintDefinitionByName, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
-        [Parameter(ParameterSetName = ManagementGroupScope, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Management group name.")]
+        [Parameter(ParameterSetName = ManagementGroupScope, Position = 0, Mandatory = false, ValueFromPipelineByPropertyName = true, HelpMessage = "Management group name.")]
         [ValidateNotNullOrEmpty]
-        public string[] ManagementGroupName { get; set; }
+        public string ManagementGroupName { get; set; }
 
         [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 2, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
         [Parameter(ParameterSetName = BlueprintDefinitionByName, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
@@ -63,32 +63,14 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         {
             try
             {
+                //IEnumerable<PSBlueprint> ret = null;
                 switch (ParameterSetName)
                 {
                     case ManagementGroupScope:
-
-                        string nextLink = string.Empty;
-
-                        do
-                        {
-                            //ret = this.AutomationClient.ListAutomationAccounts(this.ManagementGroupName[0], ref nextLink);
-                            //this.WriteObject(ret, true);
-
-                        } while (!string.IsNullOrEmpty(nextLink));
-                        //WriteObject(BlueprintClient.ListBlueprintsAsync(ManagementGroupName[0]).Result);
                         break;
                     case BlueprintDefinitionByName:
-                        if (LatestPublished)
-                        {
-                            //WriteObject(BlueprintClient.GetLatestPublishedBlueprintAsync(ManagementGroupName, Name).Result);
-                        }
-                        else
-                        {
-                            //WriteObject(BlueprintClient.GetBlueprintAsync(ManagementGroupName, Name).Result);
-                        }
                         break;
                     case BlueprintDefinitionByVersion:
-                        //WriteObject(BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName, Name, Version).Result);
                         break;
                 }
             }
