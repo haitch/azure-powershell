@@ -108,44 +108,44 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
             return latest;
         }
 
-        public IEnumerable<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignments(string subscriptionId)
+        public IEnumerable<PSBlueprintAssignment> ListBlueprintAssignments(string subscriptionId)
         {
             var responseList = blueprintManagementClient.Assignments.List(subscriptionId);
 
-            yield return responseList.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId));  
+            foreach (var assignment in responseList.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId)))
+            {
+                yield return assignment;
+            }            
 
             while (!string.IsNullOrEmpty(responseList.NextPageLink))
             {
                 responseList = blueprintManagementClient.Assignments.ListNext(responseList.NextPageLink);
-                yield return responseList.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId));
+
+                foreach (var assignment in responseList.Select(assignment => PSBlueprintAssignment.FromAssignment(assignment, subscriptionId)))
+                {
+                    yield return assignment;
+                }
             }
         }
 
-        public IEnumerable<IEnumerable<PSBlueprint>> ListBlueprints(string mgName)
-        {
-            var responseList = blueprintManagementClient.Blueprints.List(mgName); 
-
-            yield return responseList.Select(bp => PSBlueprint.FromBlueprintModel(bp, mgName));
-
-            while (!string.IsNullOrEmpty(responseList.NextPageLink))
-            {
-                responseList = blueprintManagementClient.Blueprints.ListNext(responseList.NextPageLink);
-                yield return responseList.Select(bp => PSBlueprint.FromBlueprintModel(bp, mgName));
-            }    
-        }
-
-        public IEnumerable<IEnumerable<PSBlueprint>> ListBlueprints(List<string> mgList)
+        public IEnumerable<PSBlueprint> ListBlueprints(IEnumerable<string> mgList)
         {
             foreach (var mgName in mgList)
             {
                 var listResponse = blueprintManagementClient.Blueprints.List(mgName);
 
-                yield return listResponse.Select(bp => PSBlueprint.FromBlueprintModel(bp, mgName));
+                foreach (var bp in listResponse.Select(bp => PSBlueprint.FromBlueprintModel(bp, mgName)))
+                {
+                    yield return bp;
+                }
 
-                while (!String.IsNullOrEmpty(listResponse.NextPageLink))
+                while (!string.IsNullOrEmpty(listResponse.NextPageLink))
                 {
                     listResponse = blueprintManagementClient.Blueprints.ListNext(listResponse.NextPageLink);
-                    yield return listResponse.Select(bp => PSBlueprint.FromBlueprintModel(bp, mgName));
+                    foreach (var bp in listResponse.Select(bp => PSBlueprint.FromBlueprintModel(bp, mgName)))
+                    {
+                        yield return bp;
+                    }
                 }
             }
         }
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
         public PSBlueprintAssignment DeleteBlueprintAssignment(string subscriptionId, string blueprintAssignmentName)
         {
             var response = blueprintManagementClient.Assignments.DeleteWithHttpMessagesAsync(subscriptionId, blueprintAssignmentName).GetAwaiter().GetResult();
-            
+
             if (response.Body != null)
             {
                 return PSBlueprintAssignment.FromAssignment(response.Body, subscriptionId);
@@ -189,7 +189,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
 
             return null;
         }
-        
+
         /// <summary>
         /// Compare to nullable DateTime objects
         /// </summary>

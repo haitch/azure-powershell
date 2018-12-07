@@ -28,8 +28,8 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
     {
         #region Class Constants
         // Parameter Set names
-        const string SubscriptionScope = "SubscriptionScope";
-        const string BlueprintAssignmentByName = "BlueprintAssignmentByName";
+        private const string SubscriptionScope = "SubscriptionScope";
+        private const string BlueprintAssignmentByName = "BlueprintAssignmentByName";
         #endregion Sets
 
         [Parameter(ParameterSetName = BlueprintAssignmentByName, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
@@ -50,8 +50,8 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 switch (ParameterSetName) {
                     case SubscriptionScope:
-                        foreach (var assignmentList in BlueprintClient.ListBlueprintAssignments(SubscriptionId ?? DefaultContext.Subscription.Id))
-                            WriteObject(assignmentList);
+                        foreach (var assignment in BlueprintClient.ListBlueprintAssignments(SubscriptionId ?? DefaultContext.Subscription.Id))
+                            WriteObject(assignment);
                         break;
                     case BlueprintAssignmentByName:
                         WriteObject(BlueprintClient.GetBlueprintAssignment(SubscriptionId ?? DefaultContext.Subscription.Id, Name));

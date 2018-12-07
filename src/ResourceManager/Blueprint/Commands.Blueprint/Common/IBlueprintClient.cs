@@ -24,9 +24,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
     {
         IAzureSubscription Subscription { get; }
 
-        IEnumerable<IEnumerable<PSBlueprint>> ListBlueprints(string mgName);
-
-        IEnumerable<IEnumerable<PSBlueprint>> ListBlueprints(List<string> mgList);
+        IEnumerable<PSBlueprint> ListBlueprints(IEnumerable<string> mgList);
 
         PSBlueprint GetBlueprint(string mgName, string blueprintName);
 
@@ -34,7 +32,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
 
         PSPublishedBlueprint GetLatestPublishedBlueprint(string mgName, string blueprintName);
 
-        IEnumerable<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignments(string subscriptionId);
+        IEnumerable<PSBlueprintAssignment> ListBlueprintAssignments(string subscriptionId);
 
         PSBlueprintAssignment GetBlueprintAssignment(string subscriptionId, string blueprintAssignmentName);
 

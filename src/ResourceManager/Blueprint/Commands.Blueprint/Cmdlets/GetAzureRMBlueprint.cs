@@ -72,21 +72,21 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 switch (ParameterSetName)
                 {
                     case ManagementGroupScope:
-                        if (string.IsNullOrEmpty(ManagementGroupName))
-                            foreach (var bpList in BlueprintClient.ListBlueprints(GetManagementGroupsForCurrentUser().ToList()))
-                                WriteObject(bpList);
-                        else
-                            foreach (var bpList in BlueprintClient.ListBlueprints(ManagementGroupName))
-                                WriteObject(bpList);             
+                        IEnumerable<string> mgList = string.IsNullOrEmpty(ManagementGroupName)
+                            ? GetManagementGroupsForCurrentUser()
+                            : new string[] { ManagementGroupName };
+
+                        foreach (var bp in BlueprintClient.ListBlueprints(mgList))
+                            WriteObject(bp);
                         break;
                     case BlueprintDefinitionByName:
-                            WriteObject(BlueprintClient.GetBlueprint(ManagementGroupName, Name));
+                        WriteObject(BlueprintClient.GetBlueprint(ManagementGroupName, Name));
                         break;
                     case BlueprintDefinitionByVersion:
-                            WriteObject(BlueprintClient.GetPublishedBlueprint(ManagementGroupName, Name, Version));
+                        WriteObject(BlueprintClient.GetPublishedBlueprint(ManagementGroupName, Name, Version));
                         break;
                     case BlueprintDefinitionByLatestPublished:
-                            WriteObject(BlueprintClient.GetLatestPublishedBlueprint(ManagementGroupName, Name));
+                        WriteObject(BlueprintClient.GetLatestPublishedBlueprint(ManagementGroupName, Name));
                         break;
                 }
             }

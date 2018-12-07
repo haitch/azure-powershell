@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
     {
         #region Class Constants
         // Parameter Set names
-        const string DeleteBlueprintAssignment = "DeleteBlueprintAssignment";
+        private const string DeleteBlueprintAssignment = "DeleteBlueprintAssignment";
         #endregion Class Constants
 
         #region Parameters
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         [ValidateNotNull]
         public string Name { get; set; }
 
-        [Parameter(Mandatory = true, Position = 1, ValueFromPipeline = true, ParameterSetName = "InputObject")]
+        [Parameter(ParameterSetName = DeleteBlueprintAssignment, Position = 1, Mandatory = true, ValueFromPipeline = true)]
         public PSBlueprintAssignment[] BlueprintAssignmentObject { get; set; }
         #endregion Parameters
 
