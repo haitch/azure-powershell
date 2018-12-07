@@ -16,6 +16,7 @@ using Microsoft.Azure.Commands.Blueprint.Models;
 using Microsoft.Azure.Commands.Common.Authentication.Abstractions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.Management.Blueprint.Models;
 
 namespace Microsoft.Azure.Commands.Blueprint.Common
 {
@@ -23,24 +24,22 @@ namespace Microsoft.Azure.Commands.Blueprint.Common
     {
         IAzureSubscription Subscription { get; }
 
-        Task<IEnumerable<PSBlueprint>> ListBlueprintsAsync(string mgName);
+        IEnumerable<IEnumerable<PSBlueprint>> ListBlueprints(string mgName);
 
-        Task<PSBlueprint> GetBlueprintAsync(string mgName, string blueprintName);
+        IEnumerable<IEnumerable<PSBlueprint>> ListBlueprints(List<string> mgList);
 
-        //IEnumerable<PSPublishedBlueprint> ListPublishedBlueprints(string mgName, string blueprintName);
-        Task<IEnumerable<PSPublishedBlueprint>> ListPublishedBlueprintsAsync(string mgName, string blueprintName);
+        PSBlueprint GetBlueprint(string mgName, string blueprintName);
 
-        Task<PSPublishedBlueprint> GetPublishedBlueprintAsync(string mgName, string blueprintName, string version);
+        PSPublishedBlueprint GetPublishedBlueprint(string mgName, string blueprintName, string version);
 
-        Task<PSPublishedBlueprint> GetLatestPublishedBlueprintAsync(string mgName, string blueprintName);
+        PSPublishedBlueprint GetLatestPublishedBlueprint(string mgName, string blueprintName);
 
-        Task<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignmentsAsync(string subscriptionId);
+        IEnumerable<IEnumerable<PSBlueprintAssignment>> ListBlueprintAssignments(string subscriptionId);
 
-        Task<PSBlueprintAssignment> GetBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName);
+        PSBlueprintAssignment GetBlueprintAssignment(string subscriptionId, string blueprintAssignmentName);
 
-        Task<PSBlueprintAssignment> DeleteBlueprintAssignmentAsync(string subscriptionId, string blueprintAssignmentName);
+        PSBlueprintAssignment DeleteBlueprintAssignment(string subscriptionId, string blueprintAssignmentName);
 
-        Task<PSBlueprintAssignment> CreateOrUpdateBlueprintAssignmentAsync(string subscriptionId, string assignmentName,
-                                                                           Microsoft.Azure.Management.Blueprint.Models.Assignment assignment);
+        PSBlueprintAssignment CreateOrUpdateBlueprintAssignment(string subscriptionId, string assignmentName, Assignment assignment);
     }
 }

@@ -40,7 +40,6 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         [ValidateNotNull]
         public string Name { get; set; }
 
-        // TODO: Find out if deleting a blueprint assignment object supported.
         [Parameter(Mandatory = true, Position = 1, ValueFromPipeline = true, ParameterSetName = "InputObject")]
         public PSBlueprintAssignment[] BlueprintAssignmentObject { get; set; }
         #endregion Parameters
@@ -53,7 +52,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 switch (ParameterSetName)
                 {
                     case DeleteBlueprintAssignment:
-                        WriteObject(BlueprintClient.DeleteBlueprintAssignmentAsync(SubscriptionId, Name).Result);
+                        WriteObject(BlueprintClient.DeleteBlueprintAssignment(SubscriptionId, Name));
                         break;
                     default:
                         throw new PSInvalidOperationException();

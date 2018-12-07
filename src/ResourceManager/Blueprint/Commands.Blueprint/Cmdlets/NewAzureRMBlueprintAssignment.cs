@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
                 if (ShouldProcess(Name))
                 {
-                    var assignmentResult = BlueprintClient.CreateOrUpdateBlueprintAssignmentAsync(SubscriptionId[0],Name, localAssignment).Result;
+                    var assignmentResult = BlueprintClient.CreateOrUpdateBlueprintAssignment(SubscriptionId[0],Name, localAssignment);
                     if (assignmentResult != null) {
                         WriteObject(assignmentResult);
                     }

@@ -50,10 +50,11 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
             {
                 switch (ParameterSetName) {
                     case SubscriptionScope:
-                        WriteObject(BlueprintClient.ListBlueprintAssignmentsAsync(SubscriptionId ?? DefaultContext.Subscription.Id).Result);
+                        foreach (var assignmentList in BlueprintClient.ListBlueprintAssignments(SubscriptionId ?? DefaultContext.Subscription.Id))
+                            WriteObject(assignmentList);
                         break;
                     case BlueprintAssignmentByName:
-                        WriteObject(BlueprintClient.GetBlueprintAssignmentAsync(SubscriptionId ?? DefaultContext.Subscription.Id, Name).Result);
+                        WriteObject(BlueprintClient.GetBlueprintAssignment(SubscriptionId ?? DefaultContext.Subscription.Id, Name));
                         break;
                 }
             }
