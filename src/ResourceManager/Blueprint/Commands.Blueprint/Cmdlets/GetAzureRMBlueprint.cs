@@ -27,55 +27,66 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.Get, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "Blueprint")]
-    public class GetAzureRMBlueprint : BlueprintCmdletBase
+    public class GetAzureRmBlueprint : BlueprintCmdletBase
     {
         #region Class Constants
+
         // Parameter Set names
-        const string ParameterSetDefault = "Default";
-        const string ParameterSetByVersion = "ByVersion";
-        const string ParameterSetLatestPublished = "LatestPublished";
+        private const string ManagementGroupScope = "ManagementGroupScope";
+        private const string BlueprintDefinitionByName = "BlueprintDefinitionByName";
+        private const string BlueprintDefinitionByLatestPublished = "BlueprintDefinitionByLatestPublished";
+        private const string BlueprintDefinitionByVersion = "BlueprintDefinitionByVersion";
+
         #endregion Class Constants
 
         #region Parameters
-        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetDefault)]
-        [Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetByVersion)]
-        [Parameter(Mandatory = true, Position = 0, ValueFromPipeline = true, ParameterSetName = ParameterSetLatestPublished)]
-        [ValidateNotNullOrEmpty]
-        public string[] Name { get; set; }
 
-        [Parameter(Mandatory = false, ParameterSetName = ParameterSetDefault)]
-        [Parameter(Mandatory = true, ParameterSetName = ParameterSetByVersion)]
-        [Parameter(Mandatory = true, ParameterSetName = ParameterSetLatestPublished)]
+        [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
+        [Parameter(ParameterSetName = BlueprintDefinitionByName, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
+        [Parameter(ParameterSetName = ManagementGroupScope, Position = 0, Mandatory = false, ValueFromPipelineByPropertyName = true, HelpMessage = "Management group name.")]
+        [Parameter(ParameterSetName = BlueprintDefinitionByLatestPublished, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
         [ValidateNotNullOrEmpty]
-        public string[] ManagementGroupName { get; set; }
+        public string ManagementGroupName { get; set; }
 
-        [Parameter(Mandatory = true, ParameterSetName = ParameterSetByVersion)]
+        [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
+        [Parameter(ParameterSetName = BlueprintDefinitionByName, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition name.")]
+        [Parameter(ParameterSetName = BlueprintDefinitionByLatestPublished, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Get latest published version for a Blueprint.")]
         [ValidateNotNullOrEmpty]
-        public string BlueprintVersion { get; set; }
+        public string Name { get; set; }
 
-        [Parameter(Mandatory = true, ParameterSetName = ParameterSetLatestPublished)]
+        [Parameter(ParameterSetName = BlueprintDefinitionByVersion, Position = 2, Mandatory = false, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition version.")]
+        [ValidateNotNullOrEmpty]
+        public string Version { get; set; }
+
+        [Parameter(ParameterSetName = BlueprintDefinitionByLatestPublished, Position = 2, Mandatory = false, HelpMessage = "Blueprint definition name.")]
         public SwitchParameter LatestPublished { get; set; }
+
         #endregion Parameters
 
         #region Cmdlet Overrides
+
         public override void ExecuteCmdlet()
         {
             try
             {
                 switch (ParameterSetName)
                 {
-                    case ParameterSetDefault:
-                        HandleDefaultParameterSet();
-                        break;
+                    case ManagementGroupScope:
+                        IEnumerable<string> mgList = string.IsNullOrEmpty(ManagementGroupName)
+                            ? GetManagementGroupsForCurrentUser()
+                            : new string[] { ManagementGroupName };
 
-                    case ParameterSetByVersion:
-                        EnsureSingleManagementGroup();
-                        HandleByVersionParameterSet();
+                        foreach (var bp in BlueprintClient.ListBlueprints(mgList))
+                            WriteObject(bp);
                         break;
-
-                    case ParameterSetLatestPublished:
-                        EnsureSingleManagementGroup();
-                        HandleLatestPublishedParameterSet();
+                    case BlueprintDefinitionByName:
+                        WriteObject(BlueprintClient.GetBlueprint(ManagementGroupName, Name));
+                        break;
+                    case BlueprintDefinitionByVersion:
+                        WriteObject(BlueprintClient.GetPublishedBlueprint(ManagementGroupName, Name, Version));
+                        break;
+                    case BlueprintDefinitionByLatestPublished:
+                        WriteObject(BlueprintClient.GetLatestPublishedBlueprint(ManagementGroupName, Name));
                         break;
                 }
             }
@@ -84,205 +95,13 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
                 WriteExceptionError(ex);
             }
         }
+
         #endregion Cmdlet Overrides
-
-        #region Private Methods
-        /// <summary>
-        /// Handle the "Default" parameter set.
-        /// </summary>
-        /// <remarks>
-        /// The "Default" parameter set fetches either all blueprints or named blueprints.
-        /// Both published and draft blueprints are retrieved.
-        /// </remarks>
-        private void HandleDefaultParameterSet()
+        private IEnumerable<string> GetManagementGroupsForCurrentUser()
         {
-            if (ManagementGroupName == null || ManagementGroupName.Length > 1)
-            {
-                ProcessBlueprintsFromAllManagementGroups();
-            }
-            else
-            {
-                if (Name == null)
-                {
-                    ProcessBlueprintsFromManagementGroup(ManagementGroupName[0]);
-                }
-                else
-                {
-                    ProcessNamedBlueprints(ManagementGroupName[0]);
-                }
-            }
+            var responseList = ManagementGroupsClient.ManagementGroups.List();
+            return responseList.Select(managementGroup => managementGroup.Name).ToList();
         }
 
-        /// <summary>
-        /// Handle the "ByVersion" parameter set.
-        /// </summary>
-        /// <remarks>
-        /// The "ByVersion" parameter set filters published blueprints by version name.
-        /// The "Name" parameter is required for this parameter set.
-        /// </remarks>
-        private void HandleByVersionParameterSet()
-        {
-            foreach (var name in Name)
-            {
-                try
-                {
-                    var blueprint = BlueprintClient.GetPublishedBlueprintAsync(ManagementGroupName[0], name, BlueprintVersion).Result;
-                    WriteObject(blueprint);
-                }
-                catch (Exception)
-                {
-                    // If only a single Name is given this is an error, othwise the error is ignored.
-                    if (Name.Length == 1)
-                    {
-                        throw;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handle the "LatestPublished" parameter set.
-        /// </summary>
-        /// <remarks>
-        /// The "LatestPublished" parameter set filters published blueprints by latest published date.
-        /// </remarks>
-        private void HandleLatestPublishedParameterSet()
-        {
-            foreach (var name in Name)
-            {
-                try
-                {
-                    var blueprint = BlueprintClient.GetLatestPublishedBlueprintAsync(ManagementGroupName[0], name).Result;
-
-                    if (blueprint != null)
-                    {
-                        WriteObject(blueprint);
-                    }
-                }
-                catch (Exception)
-                {
-                    // If only a single Name is given this is an error, othwise the error is ignored.
-                    if (Name.Length == 1)
-                    {
-                        throw;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Fetch all blueprints from the given management group
-        /// </summary>
-        private async Task<IEnumerable<PSBlueprint>> GetAllBlueprintsFromManagementGroup(string mgName)
-        {
-            return await BlueprintClient.ListBlueprintsAsync(mgName);
-        }
-
-        private void ProcessBlueprintsFromManagementGroup(string mgName)
-        {
-            var result = GetAllBlueprintsFromManagementGroup(mgName).Result;
-
-            if (result != null)
-            {
-                foreach (var bp in result)
-                {
-                    WriteObject(bp);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Fetch named blueprint(s) from the API and write each to the pipeline
-        /// </summary>
-        private void ProcessNamedBlueprints(string mgName)
-        {
-            foreach (var name in Name)
-            {
-                try
-                {
-                    var blueprint = BlueprintClient.GetBlueprintAsync(mgName, name).Result;
-                    WriteObject(blueprint);
-                }
-                catch (Exception)
-                {
-                    // If only a single Name is given this is an error, othwise the error is ignored.
-                    if (Name.Length == 1)
-                    {
-                        throw;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Fetch the list of Management Groups and iterate over them.
-        /// If no names were given, output all blueprints from all groups.
-        /// If names were given, output only the named blueprints from each group.
-        /// </summary>
-        private void ProcessBlueprintsFromAllManagementGroups()
-        {
-            var taskList = new List<Task<IEnumerable<PSBlueprint>>>();
-
-            foreach (var mgName in GetManagementGroupNames())
-            {
-                taskList.Add(GetAllBlueprintsFromManagementGroup(mgName));
-            }
-
-            foreach (var task in taskList)
-            {
-                var result = task.Result;
-
-                if (result != null)
-                {
-                    if (Name == null)
-                    {
-                        foreach (var bp in result)
-                        {
-                            WriteObject(bp);
-                        }
-                    }
-                    else
-                    {
-                        foreach (var bp in result)
-                        {
-                            foreach (var name in Name)
-                            {
-                                if (name.Equals(bp.Name, StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    WriteObject(bp);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Return a collection of Management Group names.
-        /// If the ManagementGroupName property contains any names, the value of
-        /// the property is returned, otherwise a list of names is queried
-        /// via the API.
-        /// </summary>
-        /// <returns></returns>
-        private IEnumerable<string> GetManagementGroupNames()
-        {
-            if (ManagementGroupName != null && ManagementGroupName.Length > 0)
-            {
-                return ManagementGroupName;
-            }
-
-            var response = ManagementGroupsClient.ManagementGroups.List();
-            return response.Select(managementGroup => managementGroup.Name).ToList();
-        }
-
-        private void EnsureSingleManagementGroup()
-        {
-            if (ManagementGroupName == null || ManagementGroupName.Length != 1)
-            {
-                throw new ArgumentException("One ManagementGroupName must be provided.");
-            }
-        }
-        #endregion Private Methods
     }
 }

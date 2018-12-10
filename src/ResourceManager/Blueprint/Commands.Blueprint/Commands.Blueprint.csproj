@@ -54,10 +54,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Cmdlets\BlueprintCmdletBase.cs" />
-    <Compile Include="Cmdlets\GetAzureRMBlueprint.cs" />
-    <Compile Include="Cmdlets\GetAzureRMBlueprintAssignment.cs" />
-    <Compile Include="Cmdlets\NewAzureRMBlueprintAssignment.cs" />
-    <Compile Include="Cmdlets\RemoveAzureRMBlueprintAssignment.cs" />
+    <Compile Include="Cmdlets\GetAzureRmBlueprint.cs" />
+    <Compile Include="Cmdlets\GetAzureRmBlueprintAssignment.cs" />
+    <Compile Include="Cmdlets\NewAzureRmBlueprintAssignment.cs" />
+    <Compile Include="Cmdlets\RemoveAzureRmBlueprintAssignment.cs" />
     <Compile Include="Common\BlueprintClient.cs" />
     <Compile Include="Common\IBlueprintClient.cs" />
     <Compile Include="Models\PSAssignmentLockSettings.cs" />

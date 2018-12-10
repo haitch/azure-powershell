@@ -27,48 +27,42 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.New, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "BlueprintAssignment", SupportsShouldProcess = true)]
-    public class NewAzureRMBlueprintAssignment : BlueprintCmdletBase
+    public class NewAzureRmBlueprintAssignment : BlueprintCmdletBase
     {
+        #region Class Constants
+        // Parameter Set names
+        const string CreateUpdateBlueprintAssignment = "BlueprintAssignment";
+        #endregion
+
         #region Parameters
-        [Parameter(Mandatory = true, Position = 0)]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
         [ValidateNotNullOrEmpty]
         public string Name { get; set; }
 
-        [Parameter(Mandatory = true, ValueFromPipeline = true)]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint definition object.")]
         [ValidateNotNull]
         public PSBlueprintBase Blueprint { get; set; }
 
-        [Parameter(Mandatory = true)]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Subscription ID to assign Blueprint. Can be a comma delimited list of subscription ID strings.")]
         [ValidateNotNullOrEmpty]
-        public string Subscription { get; set; }
+        public string[] SubscriptionId { get; set; }
 
-        [Parameter(Mandatory = true)]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Region for managed identity to be created in. Learn more at aka.ms/blueprintmsi")]
         [ValidateNotNullOrEmpty]
         public string Location { get; set; }
 
-        [Parameter(Mandatory = true)]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Artifact parameters.")]
         [ValidateNotNull]
         public Hashtable Parameters { get; set; }
 
-        [Parameter(Mandatory = false)]
+        [Parameter(ParameterSetName = CreateUpdateBlueprintAssignment, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Lock resources. Learn more at aka.ms/blueprintlocks")]
         public SwitchParameter Lock { get; set; }
         #endregion Parameters
 
         #region Cmdlet Overrides
         public override void ExecuteCmdlet()
         {
-            /* TODO:
-                1.  Register Blueprint RP in the subscription.
-                        Register-AzureRmResourceProvider
-                2.  Grant Owner Permission
-                    a. doing AAD query to resolve Azure Blueprint SPN,
-                        AppId: f71766dc-90d9-4b7d-bd9d-4499c4331c3f
-                        cmdlet: Get-AzureRmADServicePrincipal 
-                    b. grant owner permission to this SPN
-                        New-AzureRmRoleAssignment -ObjectId "from previous step" -Scope "/subscriptions/{}" -RoleDefinitionName "Owner"
-
-                3.  Call BlueprintAssignment.CreateOrUpdate()
-            */
+            //TODO: Move below to another function block and call through CreateNewAssignment()
             try
             {
                 AssignmentLockSettings lockSettings = new AssignmentLockSettings { Mode = PSLockMode.None.ToString() };
@@ -93,10 +87,14 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 
                 if (ShouldProcess(Name))
                 {
-                    var assignment = BlueprintClient.CreateOrUpdateBlueprintAssignmentAsync(Subscription, Name, localAssignment);
-                    if (assignment != null)
-                        WriteObject(assignment);
-
+                    var assignmentResult = BlueprintClient.CreateOrUpdateBlueprintAssignment(SubscriptionId[0],Name, localAssignment);
+                    if (assignmentResult != null) {
+                        WriteObject(assignmentResult);
+                    }
+                    else
+                    {
+                       //TODO: Need a way to let user know about why assingment failed.
+                    }
                 }
             }
             catch (Exception ex)
@@ -107,6 +105,22 @@ namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
         #endregion Cmdlet Overrides
 
         #region Private Methods
+        private void CreateNewAssignment()
+        {
+            /* TODO:
+               1.  Register Blueprint RP in the subscription.
+                       Register-AzureRmResourceProvider
+               2.  Grant Owner Permission
+                   a. doing AAD query to resolve Azure Blueprint SPN,
+                       AppId: f71766dc-90d9-4b7d-bd9d-4499c4331c3f
+                       cmdlet: Get-AzureRmADServicePrincipal
+                   b. grant owner permission to this SPN
+                       New-AzureRmRoleAssignment -ObjectId "from previous step" -Scope "/subscriptions/{}" -RoleDefinitionName "Owner"
+
+               3.  Call BlueprintAssignment.CreateOrUpdate()
+           */
+
+        }
         #endregion Private Methods
     }
 }

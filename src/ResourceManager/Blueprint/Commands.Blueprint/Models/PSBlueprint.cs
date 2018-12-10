@@ -71,7 +71,7 @@ namespace Microsoft.Azure.Commands.Blueprint.Models
                                                 Description = item.Value.Description,
                                                 StrongType = item.Value.StrongType,
                                                 DefaultValue = item.Value.DefaultValue,
-                                                AllowedValues = item.Value.AllowedValues.ToList()
+                                                AllowedValues = (item.Value.AllowedValues != null) ? item.Value.AllowedValues.ToList() : null
                                             });
             }
 

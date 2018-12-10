@@ -24,72 +24,45 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Commands.Blueprint.Cmdlets
 {
     [Cmdlet(VerbsCommon.Get, ResourceManager.Common.AzureRMConstants.AzureRMPrefix + "BlueprintAssignment")]
-    public class GetAzureRMBlueprintAssignment : BlueprintCmdletBase
+    public class GetAzureRmBlueprintAssignment : BlueprintCmdletBase
     {
-        #region Parameters
-        [Parameter(Mandatory = false, Position = 0, ValueFromPipeline = true)]
-        [ValidateNotNullOrEmpty]
-        public string[] Name { get; set; }
+        #region Class Constants
+        // Parameter Set names
+        private const string SubscriptionScope = "SubscriptionScope";
+        private const string BlueprintAssignmentByName = "BlueprintAssignmentByName";
+        #endregion Sets
 
-        [Parameter(Mandatory = false)]
+        [Parameter(ParameterSetName = BlueprintAssignmentByName, Position = 0, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
+        [Parameter(ParameterSetName = SubscriptionScope, Position = 0, Mandatory = false, ValueFromPipelineByPropertyName = true, HelpMessage = "Subscription Id.")]
         [ValidateNotNullOrEmpty]
-        public string Subscription { get; set; }
+        public string SubscriptionId { get; set; }
+
+        #region Parameters
+        [Parameter(ParameterSetName = BlueprintAssignmentByName, Position = 1, Mandatory = true, ValueFromPipelineByPropertyName = true, HelpMessage = "Blueprint assignment name.")]
+        [ValidateNotNullOrEmpty]
+        public string Name { get; set; }
         #endregion Parameters
 
         #region Cmdlet Overrides
         public override void ExecuteCmdlet()
         {
-            if (Name == null)
-            {
-                ProcessAssignments();
-            }
-            else
-            {
-                ProcessNamedAssignments();
-            }
-        }
-        #endregion Cmdlet Overrides
-
-        #region Private Methods
-        /// <summary>
-        /// Fetch all assignments from the API and write each to the pipeline
-        /// </summary>
-        private void ProcessAssignments()
-        {
             try
             {
-                string subscriptionId = Subscription ?? DefaultContext.Subscription.Id;
-                var assignments = BlueprintClient.ListBlueprintAssignmentsAsync(subscriptionId).Result;
-
-                WriteObject(assignments, true);
+                switch (ParameterSetName) {
+                    case SubscriptionScope:
+                        foreach (var assignment in BlueprintClient.ListBlueprintAssignments(SubscriptionId ?? DefaultContext.Subscription.Id))
+                            WriteObject(assignment);
+                        break;
+                    case BlueprintAssignmentByName:
+                        WriteObject(BlueprintClient.GetBlueprintAssignment(SubscriptionId ?? DefaultContext.Subscription.Id, Name));
+                        break;
+                }
             }
             catch (Exception ex)
             {
                 WriteExceptionError(ex);
             }
         }
-
-        /// <summary>
-        /// Fetch named assignment(s) from the API and write each to the pipeline
-        /// </summary>
-        private void ProcessNamedAssignments()
-        {
-            string subscription = Subscription ?? DefaultContext.Subscription.Id;
-
-            foreach (var name in Name)
-            {
-                try
-                {
-                    var assignment = BlueprintClient.GetBlueprintAssignmentAsync(subscription, name).Result;
-
-                    WriteObject(assignment);
-                }
-                catch (Exception ex)
-                {
-                    WriteExceptionError(ex);
-                }
-            }
-        }
-        #endregion Private Methods
+        #endregion Cmdlet Overrides
     }
 }

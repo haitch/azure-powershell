@@ -59,7 +59,7 @@
     </Reference>
     <Reference Include="Microsoft.Azure.Management.Blueprint">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint-0.9.1-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Azure.Management.Blueprint.0.9.1-preview\lib\net452\Microsoft.Azure.Management.Blueprint.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
